@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Ghar Ke Nuskhe",
+    "slug": "herbal-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#13665A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.herbalapp.gharkenuskhe"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#13665A"
+      },
+      "package": "com.herbalapp.gharkenuskhe"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}
