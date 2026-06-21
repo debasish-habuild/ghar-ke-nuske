@@ -102,7 +102,10 @@ function adaptIngredient(i: ApiIngredient): Ingredient {
     id: i.id,
     name: i.name,
     emoji: i.emoji,
-    group: i.group,
+    // Ungrouped ingredients (e.g. "Water" has a blank group in the data) would
+    // otherwise render as a label-less, gap-like section in the Kitchen Finder.
+    // Bucket them into "Dairy & Others" so the picker stays tidy.
+    group: i.group?.trim() ? i.group : "Dairy & Others",
     order: i.order,
   };
 }

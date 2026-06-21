@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -12,9 +12,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
-import { Colors, Fonts, Spacing, Radius } from "../constants/theme";
+import { Fonts, Spacing, Radius, Palette } from "../constants/theme";
 import { CATEGORY_ICONS } from "../constants/categoryIcons";
 import { useCatalog } from "../context/CatalogContext";
+import { useTheme } from "../context/ThemeContext";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,6 +32,8 @@ export default function HomeScreen() {
     loading,
     error,
   } = useCatalog();
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const [placeholder, setPlaceholder] = useState("");
   const phIdx = useRef(0);
   const phChar = useRef(0);
@@ -124,7 +127,7 @@ export default function HomeScreen() {
             onPress={() => nav.navigate("Search")}
             activeOpacity={0.8}
           >
-            <Feather name="search" size={16} color={Colors.text3} />
+            <Feather name="search" size={16} color={colors.text3} />
             <Text style={s.searchPlaceholder}>
               {placeholder || "Search Cold…"}
             </Text>
@@ -147,13 +150,13 @@ export default function HomeScreen() {
         {loading ? (
           <ActivityIndicator
             style={{ marginVertical: 24 }}
-            color={Colors.primary}
+            color={colors.primary}
           />
         ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={s.hScroll}
+            contentContainerStyle={[s.hScroll, { paddingBottom: 10 }]}
           >
             {concerns.map((cat) => {
               const icon = CATEGORY_ICONS[cat.iconKey];
@@ -179,7 +182,7 @@ export default function HomeScreen() {
                     <View
                       style={[
                         s.catEmojiWrap,
-                        { backgroundColor: cat.color || Colors.primaryLight },
+                        { backgroundColor: cat.color || colors.primaryLight },
                       ]}
                     >
                       <Text style={s.catEmoji}>{cat.emoji || "🌿"}</Text>
@@ -261,149 +264,158 @@ export default function HomeScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { flex: 1 },
-  hero: { height: 225, justifyContent: "flex-end", overflow: "hidden" },
-  heroTopbar: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    flexDirection: "row",
-    gap: 10,
-    zIndex: 10,
-  },
-  heroIcon: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroBody: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
-  heroTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 36,
-    color: "#fff",
-    lineHeight: 42,
-  },
-  heroSub: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: "rgba(255,255,255,0.82)",
-    marginTop: 2,
-  },
-  searchWrap: { padding: Spacing.lg, paddingBottom: 0 },
-  searchBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "#fff",
-    borderRadius: 40,
-    paddingHorizontal: Spacing.lg,
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  searchPlaceholder: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.text3,
-    flex: 1,
-  },
-  errorBox: {
-    marginHorizontal: Spacing.lg,
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: Colors.orangeLight,
-  },
-  errorText: { fontFamily: Fonts.regular, fontSize: 11, color: Colors.orange },
-  secHead: { paddingHorizontal: Spacing.lg, paddingTop: 20 },
-  secTitle: { fontFamily: Fonts.bold, fontSize: 17, color: Colors.text },
-  secSub: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.text3,
-    marginTop: 3,
-  },
-  hScroll: { paddingHorizontal: Spacing.lg, paddingTop: 14, gap: 12 },
-  catCard: {
-    width: 107,
-    borderRadius: Radius.md,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  catEmojiWrap: {
-    width: 107,
-    height: 107,
-    backgroundColor: Colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  catEmoji: { fontSize: 48 },
-  catPhoto: { width: 107, height: 107, backgroundColor: Colors.primaryLight },
-  catLabel: {
-    fontFamily: Fonts.semibold,
-    fontSize: 12,
-    color: Colors.text,
-    textAlign: "center",
-    padding: 8,
-  },
-  recipeCard: {
-    margin: Spacing.lg,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.bgCard,
-    flexDirection: "row",
-    alignItems: "center",
-    height: 120,
-    overflow: "hidden",
-    marginTop: 16,
-  },
-  recipeBody: { flex: 1, padding: Spacing.lg },
-  recipeLabel: {
-    fontFamily: Fonts.semibold,
-    fontSize: 10,
-    color: Colors.primary,
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  recipeTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-    color: Colors.primary,
-    lineHeight: 26,
-    marginBottom: 8,
-  },
-  recipeLink: {
-    fontFamily: Fonts.semibold,
-    fontSize: 12,
-    color: Colors.primary,
-    textDecorationLine: "underline",
-  },
-  recipeImg: { width: 140, height: 120, backgroundColor: Colors.primaryLight },
-  kfBtn: {
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.primary,
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.xl,
-  },
-  kfText: { fontFamily: Fonts.bold, fontSize: 16, color: "#fff" },
-  kfIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    scroll: { flex: 1 },
+    hero: { height: 225, justifyContent: "flex-end", overflow: "hidden" },
+    heroTopbar: {
+      position: "absolute",
+      top: 12,
+      right: 12,
+      flexDirection: "row",
+      gap: 10,
+      zIndex: 10,
+    },
+    heroIcon: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heroBody: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+    heroTitle: {
+      fontFamily: Fonts.bold,
+      fontSize: 36,
+      color: "#fff",
+      lineHeight: 42,
+    },
+    heroSub: {
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      color: "rgba(255,255,255,0.82)",
+      marginTop: 2,
+    },
+    searchWrap: { padding: Spacing.lg, paddingBottom: 0 },
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: c.card,
+      borderRadius: 40,
+      paddingHorizontal: Spacing.lg,
+      height: 48,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    searchPlaceholder: {
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      color: c.text3,
+      flex: 1,
+    },
+    errorBox: {
+      marginHorizontal: Spacing.lg,
+      marginTop: 12,
+      padding: 10,
+      borderRadius: 10,
+      backgroundColor: c.orangeLight,
+    },
+    errorText: {
+      fontFamily: Fonts.regular,
+      fontSize: 11,
+      color: c.orange,
+    },
+    secHead: { paddingHorizontal: Spacing.lg, paddingTop: 20 },
+    secTitle: { fontFamily: Fonts.bold, fontSize: 17, color: c.text },
+    secSub: {
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: c.text3,
+      marginTop: 3,
+    },
+    hScroll: { paddingHorizontal: Spacing.lg, paddingTop: 14, gap: 12 },
+    catCard: {
+      width: 107,
+      borderRadius: Radius.md,
+      overflow: "hidden",
+      backgroundColor: c.card,
+      shadowColor: c.shadow,
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 3,
+    },
+    catEmojiWrap: {
+      width: 107,
+      height: 107,
+      backgroundColor: c.primaryLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    catEmoji: { fontSize: 48 },
+    catPhoto: { width: 107, height: 107, backgroundColor: c.primaryLight },
+    catLabel: {
+      fontFamily: Fonts.semibold,
+      fontSize: 12,
+      color: c.text,
+      textAlign: "center",
+      padding: 8,
+    },
+    recipeCard: {
+      margin: Spacing.lg,
+      borderRadius: Radius.md,
+      backgroundColor: c.bgCard,
+      flexDirection: "row",
+      alignItems: "center",
+      height: 120,
+      overflow: "hidden",
+      marginTop: 28,
+    },
+    recipeBody: { flex: 1, padding: Spacing.lg },
+    recipeLabel: {
+      fontFamily: Fonts.semibold,
+      fontSize: 10,
+      color: c.primary,
+      letterSpacing: 1,
+      marginBottom: 4,
+    },
+    recipeTitle: {
+      fontFamily: Fonts.bold,
+      fontSize: 20,
+      color: c.primary,
+      lineHeight: 26,
+      marginBottom: 8,
+    },
+    recipeLink: {
+      fontFamily: Fonts.semibold,
+      fontSize: 12,
+      color: c.primary,
+      textDecorationLine: "underline",
+    },
+    recipeImg: {
+      width: 140,
+      height: 120,
+      backgroundColor: c.primaryLight,
+    },
+    kfBtn: {
+      marginHorizontal: Spacing.lg,
+      marginTop: Spacing.md,
+      marginBottom: Spacing.xl,
+      borderRadius: Radius.md,
+      backgroundColor: c.primary,
+      height: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.xl,
+    },
+    kfText: { fontFamily: Fonts.bold, fontSize: 16, color: "#fff" },
+    kfIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: "rgba(255,255,255,0.2)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+  });

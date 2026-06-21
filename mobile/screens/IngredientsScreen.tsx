@@ -10,13 +10,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import { Colors, Fonts } from "../constants/theme";
+import { Fonts, Palette } from "../constants/theme";
 import { Spacing } from "../constants/theme";
 import { useCatalog, Ingredient } from "../context/CatalogContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function IngredientsScreen() {
   const nav = useNavigation<any>();
   const { ingredients, loading } = useCatalog();
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Group ingredients by their `group` field (preserving order).
@@ -50,7 +53,7 @@ export default function IngredientsScreen() {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          <Feather name="chevron-left" size={20} color={Colors.text} />
+          <Feather name="chevron-left" size={20} color={colors.text} />
         </TouchableOpacity>
         <View>
           <Text style={s.headTitle}>Kitchen Finder</Text>
@@ -58,7 +61,7 @@ export default function IngredientsScreen() {
         </View>
       </View>
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
+        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
       ) : (
         <ScrollView
           contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 100 }}
@@ -117,95 +120,99 @@ export default function IngredientsScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: Spacing.lg,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headTitle: { fontFamily: Fonts.bold, fontSize: 19, color: Colors.text },
-  headSub: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.text3 },
-  heroCard: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  heroEmoji: { fontSize: 48, marginBottom: 10 },
-  heroTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 17,
-    color: Colors.text,
-    marginBottom: 6,
-    textAlign: "center",
-  },
-  heroSub: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.text3,
-    textAlign: "center",
-    lineHeight: 18,
-  },
-  groupLabel: {
-    fontFamily: Fonts.semibold,
-    fontSize: 11,
-    color: Colors.text3,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: "#fff",
-  },
-  chipOn: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  chipEmoji: { fontSize: 17 },
-  chipText: { fontFamily: Fonts.medium, fontSize: 12, color: Colors.text3 },
-  chipTextOn: { color: Colors.primary, fontFamily: Fonts.semibold },
-  selBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 12,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  selText: { fontFamily: Fonts.medium, fontSize: 13, color: Colors.primary },
-  clearText: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.text3,
-    textDecorationLine: "underline",
-  },
-  findBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 15,
-  },
-  findBtnDisabled: { opacity: 0.5 },
-  findBtnText: { fontFamily: Fonts.semibold, fontSize: 15, color: "#fff" },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: Spacing.lg,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: c.backBtn,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headTitle: { fontFamily: Fonts.bold, fontSize: 19, color: c.text },
+    headSub: { fontFamily: Fonts.regular, fontSize: 12, color: c.text3 },
+    heroCard: {
+      backgroundColor: c.primaryLight,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: "center",
+      marginBottom: 24,
+    },
+    heroEmoji: { fontSize: 48, marginBottom: 10 },
+    heroTitle: {
+      fontFamily: Fonts.bold,
+      fontSize: 17,
+      color: c.text,
+      marginBottom: 6,
+      textAlign: "center",
+    },
+    heroSub: {
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: c.text3,
+      textAlign: "center",
+      lineHeight: 18,
+    },
+    groupLabel: {
+      fontFamily: Fonts.semibold,
+      fontSize: 11,
+      color: c.text3,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      marginBottom: 12,
+    },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    chip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingVertical: 9,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.card,
+    },
+    chipOn: {
+      borderColor: c.primary,
+      backgroundColor: c.primaryLight,
+    },
+    chipEmoji: { fontSize: 17 },
+    chipText: { fontFamily: Fonts.medium, fontSize: 12, color: c.text3 },
+    chipTextOn: { color: c.primary, fontFamily: Fonts.semibold },
+    selBar: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 12,
+      backgroundColor: c.primaryLight,
+      borderRadius: 12,
+      marginBottom: 16,
+    },
+    selText: { fontFamily: Fonts.medium, fontSize: 13, color: c.primary },
+    clearText: {
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: c.text3,
+      textDecorationLine: "underline",
+    },
+    findBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+      padding: 15,
+    },
+    findBtnDisabled: { opacity: 0.5 },
+    findBtnText: { fontFamily: Fonts.semibold, fontSize: 15, color: c.white },
+  });

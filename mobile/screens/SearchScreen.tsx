@@ -13,7 +13,8 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 import { RootStackParamList } from "../App";
-import { Colors, Fonts, Spacing } from "../constants/theme";
+import { Palette, Fonts, Spacing } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import {
   useCatalog,
   Category,
@@ -37,6 +38,8 @@ export default function SearchScreen() {
     useCatalog();
   const { recents, addRecent, removeRecent, clearRecents } =
     useRecentSearches();
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const [query, setQuery] = useState("");
   const [placeholder, setPlaceholder] = useState("");
   const inputRef = useRef<TextInput>(null);
@@ -124,15 +127,15 @@ export default function SearchScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          <Feather name="chevron-left" size={20} color={Colors.text} />
+          <Feather name="chevron-left" size={20} color={colors.text} />
         </TouchableOpacity>
         <View style={s.searchBar}>
-          <Feather name="search" size={16} color={Colors.text3} />
+          <Feather name="search" size={16} color={colors.text3} />
           <TextInput
             ref={inputRef}
             style={s.input}
             placeholder={placeholder}
-            placeholderTextColor={Colors.text3}
+            placeholderTextColor={colors.text3}
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
@@ -140,7 +143,7 @@ export default function SearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery("")}>
-              <Feather name="x" size={16} color={Colors.text3} />
+              <Feather name="x" size={16} color={colors.text3} />
             </TouchableOpacity>
           )}
         </View>
@@ -171,7 +174,7 @@ export default function SearchScreen() {
                     onPress={() => removeRecent(term)}
                     hitSlop={8}
                   >
-                    <Feather name="x" size={13} color={Colors.text3} />
+                    <Feather name="x" size={13} color={colors.text3} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -235,7 +238,7 @@ export default function SearchScreen() {
                   <Feather
                     name="chevron-right"
                     size={16}
-                    color={Colors.text3}
+                    color={colors.text3}
                   />
                 </TouchableOpacity>
               );
@@ -262,7 +265,7 @@ export default function SearchScreen() {
               >
                 <Text style={s.rowEmoji}>{entity.emoji}</Text>
                 <Text style={s.rowLabel}>{label}</Text>
-                <Feather name="chevron-right" size={16} color={Colors.text3} />
+                <Feather name="chevron-right" size={16} color={colors.text3} />
               </TouchableOpacity>
             );
           }}
@@ -279,179 +282,180 @@ export default function SearchScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    padding: Spacing.lg,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#fff",
-    borderRadius: 40,
-    paddingHorizontal: Spacing.md,
-    height: 48,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  input: {
-    flex: 1,
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.text,
-  },
-  groupLabel: {
-    fontFamily: Fonts.semibold,
-    fontSize: 11,
-    color: Colors.text3,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 10,
-  },
-  recentHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  clearAll: {
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    color: Colors.primary,
-    marginBottom: 10,
-  },
-  recentEmpty: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: Colors.text3,
-    marginTop: 4,
-  },
-  recentChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: "#fff",
-  },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: {
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: "#fff",
-  },
-  chipText: { fontFamily: Fonts.medium, fontSize: 12, color: Colors.text3 },
-  resultsLabel: {
-    fontFamily: Fonts.semibold,
-    fontSize: 11,
-    color: Colors.text3,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  secHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  secHeader: { fontFamily: Fonts.bold, fontSize: 14, color: Colors.text },
-  secCount: {
-    fontFamily: Fonts.semibold,
-    fontSize: 11,
-    color: Colors.primary,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    overflow: "hidden",
-  },
-  secEmpty: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.text3,
-    fontStyle: "italic",
-    paddingVertical: 4,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  rowEmoji: { fontSize: 20 },
-  rowLabel: {
-    flex: 1,
-    fontFamily: Fonts.semibold,
-    fontSize: 13,
-    color: Colors.text,
-  },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardImg: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: Colors.primaryLight,
-  },
-  cardBody: { flex: 1 },
-  cardTitle: {
-    fontFamily: Fonts.semibold,
-    fontSize: 14,
-    color: Colors.text,
-    marginBottom: 3,
-  },
-  cardSub: {
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    color: Colors.text3,
-    marginBottom: 6,
-  },
-  cardMeta: { flexDirection: "row", gap: 10 },
-  metaText: { fontFamily: Fonts.regular, fontSize: 10, color: Colors.text3 },
-  empty: { alignItems: "center", paddingTop: 40 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyTitle: { fontFamily: Fonts.semibold, fontSize: 15, color: Colors.text },
-  emptySub: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: Colors.text3,
-    marginTop: 6,
-  },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      padding: Spacing.lg,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: c.backBtn,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    searchBar: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: c.card,
+      borderRadius: 40,
+      paddingHorizontal: Spacing.md,
+      height: 48,
+      borderWidth: 1,
+      borderColor: c.primary,
+    },
+    input: {
+      flex: 1,
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      color: c.text,
+    },
+    groupLabel: {
+      fontFamily: Fonts.semibold,
+      fontSize: 11,
+      color: c.text3,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      marginBottom: 10,
+    },
+    recentHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    clearAll: {
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+      color: c.primary,
+      marginBottom: 10,
+    },
+    recentEmpty: {
+      fontFamily: Fonts.regular,
+      fontSize: 13,
+      color: c.text3,
+      marginTop: 4,
+    },
+    recentChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.card,
+    },
+    chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    chip: {
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.card,
+    },
+    chipText: { fontFamily: Fonts.medium, fontSize: 12, color: c.text3 },
+    resultsLabel: {
+      fontFamily: Fonts.semibold,
+      fontSize: 11,
+      color: c.text3,
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      marginBottom: 12,
+    },
+    secHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    secHeader: { fontFamily: Fonts.bold, fontSize: 14, color: c.text },
+    secCount: {
+      fontFamily: Fonts.semibold,
+      fontSize: 11,
+      color: c.primary,
+      backgroundColor: c.primaryLight,
+      borderRadius: 10,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      overflow: "hidden",
+    },
+    secEmpty: {
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: c.text3,
+      fontStyle: "italic",
+      paddingVertical: 4,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.card,
+      borderRadius: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    rowEmoji: { fontSize: 20 },
+    rowLabel: {
+      flex: 1,
+      fontFamily: Fonts.semibold,
+      fontSize: 13,
+      color: c.text,
+    },
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: c.card,
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 12,
+      shadowColor: c.shadow,
+      shadowOpacity: 0.07,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    cardImg: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+      backgroundColor: c.primaryLight,
+    },
+    cardBody: { flex: 1 },
+    cardTitle: {
+      fontFamily: Fonts.semibold,
+      fontSize: 14,
+      color: c.text,
+      marginBottom: 3,
+    },
+    cardSub: {
+      fontFamily: Fonts.regular,
+      fontSize: 11,
+      color: c.text3,
+      marginBottom: 6,
+    },
+    cardMeta: { flexDirection: "row", gap: 10 },
+    metaText: { fontFamily: Fonts.regular, fontSize: 10, color: c.text3 },
+    empty: { alignItems: "center", paddingTop: 40 },
+    emptyIcon: { fontSize: 40, marginBottom: 12 },
+    emptyTitle: { fontFamily: Fonts.semibold, fontSize: 15, color: c.text },
+    emptySub: {
+      fontFamily: Fonts.regular,
+      fontSize: 12,
+      color: c.text3,
+      marginTop: 6,
+    },
+  });

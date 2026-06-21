@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,13 +10,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
-import { Colors, Fonts, Spacing } from "../constants/theme";
+import { Palette, Fonts, Spacing } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import { useCatalog } from "../context/CatalogContext";
 
 export default function SymptomScreen() {
   const nav = useNavigation<any>();
   const { categories, loading } = useCatalog();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   // Symptoms are categories tagged with the "symptom" role in Firestore.
   const symptoms = categories.filter((c) => c.roles.includes("symptom"));
@@ -42,7 +45,7 @@ export default function SymptomScreen() {
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          <Feather name="chevron-left" size={20} color={Colors.text} />
+          <Feather name="chevron-left" size={20} color={colors.text} />
         </TouchableOpacity>
         <View>
           <Text style={s.headTitle}>What's your problem?</Text>
@@ -50,7 +53,7 @@ export default function SymptomScreen() {
         </View>
       </View>
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
+        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
       ) : (
         <FlatList
           data={symptoms}
@@ -79,7 +82,7 @@ export default function SymptomScreen() {
               onPress={onContinue}
             >
               <Text style={s.btnText}>Continue</Text>
-              <Feather name="arrow-right" size={16} color="#fff" />
+              <Feather name="arrow-right" size={16} color={colors.white} />
             </TouchableOpacity>
           }
         />
@@ -88,51 +91,52 @@ export default function SymptomScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: Spacing.lg,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headTitle: { fontFamily: Fonts.bold, fontSize: 19, color: Colors.text },
-  headSub: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.text3 },
-  chip: {
-    alignItems: "center",
-    gap: 6,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: "#fff",
-  },
-  chipOn: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  chipText: {
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    color: Colors.text3,
-    textAlign: "center",
-  },
-  chipTextOn: { color: Colors.primary, fontFamily: Fonts.semibold },
-  btn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 16,
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 15,
-  },
-  btnDisabled: { opacity: 0.5 },
-  btnText: { fontFamily: Fonts.semibold, fontSize: 15, color: "#fff" },
-});
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: Spacing.lg,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: c.backBtn,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headTitle: { fontFamily: Fonts.bold, fontSize: 19, color: c.text },
+    headSub: { fontFamily: Fonts.regular, fontSize: 12, color: c.text3 },
+    chip: {
+      alignItems: "center",
+      gap: 6,
+      padding: 14,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      backgroundColor: c.card,
+    },
+    chipOn: { borderColor: c.primary, backgroundColor: c.primaryLight },
+    chipText: {
+      fontFamily: Fonts.medium,
+      fontSize: 11,
+      color: c.text3,
+      textAlign: "center",
+    },
+    chipTextOn: { color: c.primary, fontFamily: Fonts.semibold },
+    btn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginTop: 16,
+      backgroundColor: c.primary,
+      borderRadius: 12,
+      padding: 15,
+    },
+    btnDisabled: { opacity: 0.5 },
+    btnText: { fontFamily: Fonts.semibold, fontSize: 15, color: c.white },
+  });
