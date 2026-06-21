@@ -1,0 +1,9 @@
+.env
+*serviceAccountKey*.json
+*firebase-adminsdk*.json
+/bin/
+/server
+/seed
+*.test
+*.out
+README.md

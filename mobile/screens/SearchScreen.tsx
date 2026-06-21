@@ -1,55 +1,123 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Feather } from '@expo/vector-icons';
-import { RootStackParamList } from '../App';
-import { Colors, Fonts, Spacing, Radius } from '../constants/theme';
-import { REMEDIES, PLACEHOLDERS } from '../data/remedies';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  SectionList,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Feather } from "@expo/vector-icons";
+import { RootStackParamList } from "../App";
+import { Colors, Fonts, Spacing } from "../constants/theme";
+import {
+  useCatalog,
+  Category,
+  Ingredient,
+  Remedy,
+} from "../context/CatalogContext";
+import { useRecentSearches } from "../hooks/useRecentSearches";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-const RECENTS  = ['Tulsi Tea', 'Ginger Honey', 'Acne'];
-const POPULARS = ['Turmeric Milk', 'Hair Fall', 'Immunity', 'Digestion', 'Stress', 'Cold'];
+type SearchSection = {
+  key: "conditions" | "ingredients" | "remedies";
+  title: string;
+  kind: "condition" | "ingredient" | "remedy";
+  data: (Category | Ingredient | Remedy)[];
+};
 
 export default function SearchScreen() {
   const nav = useNavigation<Nav>();
-  const [query, setQuery] = useState('');
-  const [placeholder, setPlaceholder] = useState('');
+  const { categories, ingredients, remedies, searchPlaceholders } =
+    useCatalog();
+  const { recents, addRecent, removeRecent, clearRecents } =
+    useRecentSearches();
+  const [query, setQuery] = useState("");
+  const [placeholder, setPlaceholder] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const phIdx = useRef(0), phChar = useRef(0), deleting = useRef(false);
-
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  const phIdx = useRef(0),
+    phChar = useRef(0),
+    deleting = useRef(false);
 
   useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Animated typewriter placeholder, driven by backend-provided phrases.
+  useEffect(() => {
+    if (!searchPlaceholders.length) return;
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
-      const word = PLACEHOLDERS[phIdx.current];
+      const word =
+        searchPlaceholders[phIdx.current % searchPlaceholders.length];
       if (!deleting.current) {
         phChar.current++;
         setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === word.length) { deleting.current = true; timer = setTimeout(tick, 1600); }
-        else timer = setTimeout(tick, 80);
+        if (phChar.current === word.length) {
+          deleting.current = true;
+          timer = setTimeout(tick, 1600);
+        } else timer = setTimeout(tick, 80);
       } else {
         phChar.current--;
         setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === 0) { deleting.current = false; phIdx.current = (phIdx.current + 1) % PLACEHOLDERS.length; timer = setTimeout(tick, 300); }
-        else timer = setTimeout(tick, 40);
+        if (phChar.current === 0) {
+          deleting.current = false;
+          phIdx.current = (phIdx.current + 1) % searchPlaceholders.length;
+          timer = setTimeout(tick, 300);
+        } else timer = setTimeout(tick, 40);
       }
     };
     timer = setTimeout(tick, 400);
     return () => clearTimeout(timer);
-  }, []);
+  }, [searchPlaceholders]);
 
-  const results = query.trim()
-    ? REMEDIES.filter(r =>
-        r.title.toLowerCase().includes(query.toLowerCase()) ||
-        r.cat.toLowerCase().includes(query.toLowerCase()) ||
-        r.benefit.toLowerCase().includes(query.toLowerCase()) ||
-        r.ingredients.some(i => i.n.toLowerCase().includes(query.toLowerCase()))
-      )
-    : [];
+  const q = query.trim().toLowerCase();
+
+  // Three result groups. Empty groups are sorted to the bottom so populated
+  // categories are surfaced first.
+  const sections = useMemo<SearchSection[]>(() => {
+    if (!q) return [];
+    const conditions = categories.filter((c) =>
+      c.label.toLowerCase().includes(q),
+    );
+    const ings = ingredients.filter((i) => i.name.toLowerCase().includes(q));
+    const rems = remedies.filter(
+      (r) =>
+        r.title.toLowerCase().includes(q) ||
+        r.benefit.toLowerCase().includes(q),
+    );
+    const groups: SearchSection[] = [
+      {
+        key: "conditions",
+        title: "Conditions",
+        kind: "condition",
+        data: conditions,
+      },
+      {
+        key: "ingredients",
+        title: "Ingredients",
+        kind: "ingredient",
+        data: ings,
+      },
+      { key: "remedies", title: "Remedies", kind: "remedy", data: rems },
+    ];
+    // Stable sort: groups WITH results first, empty ones demoted to the bottom.
+    return groups
+      .map((g, i) => ({ g, i }))
+      .sort((a, b) => {
+        const diff =
+          (b.g.data.length > 0 ? 1 : 0) - (a.g.data.length > 0 ? 1 : 0);
+        return diff !== 0 ? diff : a.i - b.i;
+      })
+      .map(({ g }) => g);
+  }, [q, categories, ingredients, remedies]);
+
+  const totalResults = sections.reduce((sum, s) => sum + s.data.length, 0);
 
   return (
     <SafeAreaView style={s.safe}>
@@ -67,69 +135,144 @@ export default function SearchScreen() {
             placeholderTextColor={Colors.text3}
             value={query}
             onChangeText={setQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => addRecent(query)}
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
+            <TouchableOpacity onPress={() => setQuery("")}>
               <Feather name="x" size={16} color={Colors.text3} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {query.trim() === '' ? (
-        <FlatList
-          data={[]}
-          ListHeaderComponent={() => (
-            <View>
-              <Text style={s.groupLabel}>Recent Searches</Text>
-              <View style={s.chips}>
-                {RECENTS.map(t => (
-                  <TouchableOpacity key={t} style={[s.chip, s.chipActive]} onPress={() => setQuery(t)}>
-                    <Text style={s.chipActiveText}>🕐 {t}</Text>
+      {q === "" ? (
+        <View style={{ padding: Spacing.lg }}>
+          <View style={s.recentHead}>
+            <Text style={s.groupLabel}>Recent Searches</Text>
+            {recents.length > 0 && (
+              <TouchableOpacity onPress={clearRecents}>
+                <Text style={s.clearAll}>Clear all</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {recents.length === 0 ? (
+            <Text style={s.recentEmpty}>
+              Your recent searches will appear here.
+            </Text>
+          ) : (
+            <View style={s.chips}>
+              {recents.map((term) => (
+                <View key={term} style={s.recentChip}>
+                  <TouchableOpacity onPress={() => setQuery(term)}>
+                    <Text style={s.chipText}>🕐 {term}</Text>
                   </TouchableOpacity>
-                ))}
-              </View>
-              <Text style={s.groupLabel}>Popular Searches</Text>
-              <View style={s.chips}>
-                {POPULARS.map(t => (
-                  <TouchableOpacity key={t} style={s.chip} onPress={() => setQuery(t)}>
-                    <Text style={s.chipText}>🔥 {t}</Text>
+                  <TouchableOpacity
+                    onPress={() => removeRecent(term)}
+                    hitSlop={8}
+                  >
+                    <Feather name="x" size={13} color={Colors.text3} />
                   </TouchableOpacity>
-                ))}
-              </View>
+                </View>
+              ))}
             </View>
           )}
-          renderItem={() => null}
-        />
+        </View>
       ) : (
-        <FlatList
-          data={results}
-          keyExtractor={i => i.id}
+        <SectionList
+          sections={sections as never}
+          keyExtractor={(item: Category | Ingredient | Remedy, idx) =>
+            item.id + idx
+          }
           contentContainerStyle={{ padding: Spacing.lg }}
-          ListHeaderComponent={() => (
-            <Text style={s.resultsLabel}>{results.length} result{results.length !== 1 ? 's' : ''} for "{query}"</Text>
-          )}
-          ListEmptyComponent={() => (
+          stickySectionHeadersEnabled={false}
+          ListHeaderComponent={
+            <Text style={s.resultsLabel}>
+              {totalResults} result{totalResults !== 1 ? "s" : ""} for "{query}"
+            </Text>
+          }
+          renderSectionHeader={({ section }) => {
+            const sec = section as unknown as SearchSection;
+            return (
+              <View style={s.secHeaderRow}>
+                <Text style={s.secHeader}>{sec.title}</Text>
+                <Text style={s.secCount}>{sec.data.length}</Text>
+              </View>
+            );
+          }}
+          renderSectionFooter={({ section }) => {
+            const sec = section as unknown as SearchSection;
+            return sec.data.length === 0 ? (
+              <Text style={s.secEmpty}>
+                No matching {sec.title.toLowerCase()}
+              </Text>
+            ) : null;
+          }}
+          renderItem={({ item, section }) => {
+            const kind = (section as unknown as SearchSection).kind;
+            if (kind === "remedy") {
+              const r = item as Remedy;
+              return (
+                <TouchableOpacity
+                  style={s.card}
+                  onPress={() => {
+                    addRecent(query);
+                    nav.navigate("Detail", { id: r.id });
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Image source={{ uri: r.img }} style={s.cardImg} />
+                  <View style={s.cardBody}>
+                    <Text style={s.cardTitle}>{r.title}</Text>
+                    <Text style={s.cardSub} numberOfLines={1}>
+                      {r.benefit}
+                    </Text>
+                    <View style={s.cardMeta}>
+                      <Text style={s.metaText}>⏱ {r.time}</Text>
+                      <Text style={s.metaText}>🌿 {r.ing_n} ingredients</Text>
+                    </View>
+                  </View>
+                  <Feather
+                    name="chevron-right"
+                    size={16}
+                    color={Colors.text3}
+                  />
+                </TouchableOpacity>
+              );
+            }
+            // condition or ingredient → a tappable row that opens a filtered list
+            const isCondition = kind === "condition";
+            const entity = item as Category | Ingredient;
+            const label = isCondition
+              ? (entity as Category).label
+              : (entity as Ingredient).name;
+            return (
+              <TouchableOpacity
+                style={s.row}
+                activeOpacity={0.85}
+                onPress={() => {
+                  addRecent(query);
+                  nav.navigate(
+                    "Remedies",
+                    isCondition
+                      ? { category: label, categoryId: entity.id }
+                      : { category: label, ingredientId: entity.id },
+                  );
+                }}
+              >
+                <Text style={s.rowEmoji}>{entity.emoji}</Text>
+                <Text style={s.rowLabel}>{label}</Text>
+                <Feather name="chevron-right" size={16} color={Colors.text3} />
+              </TouchableOpacity>
+            );
+          }}
+          ListEmptyComponent={
             <View style={s.empty}>
               <Text style={s.emptyIcon}>🔍</Text>
               <Text style={s.emptyTitle}>No results found</Text>
               <Text style={s.emptySub}>Try a different keyword</Text>
             </View>
-          )}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={s.card} onPress={() => nav.navigate('Detail', { id: item.id })} activeOpacity={0.85}>
-              <Image source={{ uri: item.img }} style={s.cardImg} />
-              <View style={s.cardBody}>
-                <Text style={s.cardTitle}>{item.title}</Text>
-                <Text style={s.cardSub}>{item.benefit}</Text>
-                <View style={s.cardMeta}>
-                  <Text style={s.metaText}>⏱ {item.time}</Text>
-                  <Text style={s.metaText}>🌿 {item.ing_n} ingredients</Text>
-                </View>
-              </View>
-              <Feather name="chevron-right" size={16} color={Colors.text3} />
-            </TouchableOpacity>
-          )}
+          }
         />
       )}
     </SafeAreaView>
@@ -137,27 +280,178 @@ export default function SearchScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:           { flex: 1, backgroundColor: Colors.bg },
-  header:         { flexDirection: 'row', alignItems: 'center', gap: 10, padding: Spacing.lg },
-  backBtn:        { width: 36, height: 36, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center', justifyContent: 'center' },
-  searchBar:      { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 40, paddingHorizontal: Spacing.md, height: 48, borderWidth: 1, borderColor: Colors.primary },
-  input:          { flex: 1, fontFamily: Fonts.regular, fontSize: 13, color: Colors.text },
-  groupLabel:     { fontFamily: Fonts.semibold, fontSize: 11, color: Colors.text3, textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: Spacing.lg, marginTop: 16, marginBottom: 10 },
-  chips:          { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: Spacing.lg, marginBottom: 8 },
-  chip:           { paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: '#fff' },
-  chipActive:     { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
-  chipText:       { fontFamily: Fonts.medium, fontSize: 12, color: Colors.text3 },
-  chipActiveText: { fontFamily: Fonts.semibold, fontSize: 12, color: Colors.primary },
-  resultsLabel:   { fontFamily: Fonts.semibold, fontSize: 11, color: Colors.text3, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 },
-  card:           { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 12, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 8, elevation: 2 },
-  cardImg:        { width: 64, height: 64, borderRadius: 12, backgroundColor: Colors.primaryLight },
-  cardBody:       { flex: 1 },
-  cardTitle:      { fontFamily: Fonts.semibold, fontSize: 14, color: Colors.text, marginBottom: 3 },
-  cardSub:        { fontFamily: Fonts.regular, fontSize: 11, color: Colors.text3, marginBottom: 6 },
-  cardMeta:       { flexDirection: 'row', gap: 10 },
-  metaText:       { fontFamily: Fonts.regular, fontSize: 10, color: Colors.text3 },
-  empty:          { alignItems: 'center', paddingTop: 40 },
-  emptyIcon:      { fontSize: 40, marginBottom: 12 },
-  emptyTitle:     { fontFamily: Fonts.semibold, fontSize: 15, color: Colors.text },
-  emptySub:       { fontFamily: Fonts.regular, fontSize: 12, color: Colors.text3, marginTop: 6 },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: Spacing.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#fff",
+    borderRadius: 40,
+    paddingHorizontal: Spacing.md,
+    height: 48,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  input: {
+    flex: 1,
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.text,
+  },
+  groupLabel: {
+    fontFamily: Fonts.semibold,
+    fontSize: 11,
+    color: Colors.text3,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 10,
+  },
+  recentHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  clearAll: {
+    fontFamily: Fonts.medium,
+    fontSize: 11,
+    color: Colors.primary,
+    marginBottom: 10,
+  },
+  recentEmpty: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: Colors.text3,
+    marginTop: 4,
+  },
+  recentChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: "#fff",
+  },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: "#fff",
+  },
+  chipText: { fontFamily: Fonts.medium, fontSize: 12, color: Colors.text3 },
+  resultsLabel: {
+    fontFamily: Fonts.semibold,
+    fontSize: 11,
+    color: Colors.text3,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  secHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  secHeader: { fontFamily: Fonts.bold, fontSize: 14, color: Colors.text },
+  secCount: {
+    fontFamily: Fonts.semibold,
+    fontSize: 11,
+    color: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    overflow: "hidden",
+  },
+  secEmpty: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.text3,
+    fontStyle: "italic",
+    paddingVertical: 4,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  rowEmoji: { fontSize: 20 },
+  rowLabel: {
+    flex: 1,
+    fontFamily: Fonts.semibold,
+    fontSize: 13,
+    color: Colors.text,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardImg: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: Colors.primaryLight,
+  },
+  cardBody: { flex: 1 },
+  cardTitle: {
+    fontFamily: Fonts.semibold,
+    fontSize: 14,
+    color: Colors.text,
+    marginBottom: 3,
+  },
+  cardSub: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: Colors.text3,
+    marginBottom: 6,
+  },
+  cardMeta: { flexDirection: "row", gap: 10 },
+  metaText: { fontFamily: Fonts.regular, fontSize: 10, color: Colors.text3 },
+  empty: { alignItems: "center", paddingTop: 40 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontFamily: Fonts.semibold, fontSize: 15, color: Colors.text },
+  emptySub: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: Colors.text3,
+    marginTop: 6,
+  },
 });

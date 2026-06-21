@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/habuild/ghar-ke-nuske/backend/internal/auth"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/catalog"
 )
 
-// New builds the application's http.Handler: health check, catalog routes, and
-// the CORS middleware wrapping it all.
-func New(catalogHandler *catalog.Handler) http.Handler {
+// New builds the application's http.Handler: health check, public read routes,
+// the login endpoint, and auth-protected write routes — all wrapped in CORS.
+func New(catalogHandler *catalog.Handler, authn *auth.Authenticator) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
@@ -18,18 +19,24 @@ func New(catalogHandler *catalog.Handler) http.Handler {
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
+	// Public reads (consumed by the mobile app).
 	catalogHandler.Register(mux)
+
+	// Dashboard login (validates against config/login).
+	mux.HandleFunc("POST /api/login", authn.LoginHandler)
+
+	// Mutations — each wrapped with Basic-Auth middleware.
+	catalogHandler.RegisterWrite(mux, authn.Middleware)
 
 	return withCORS(mux)
 }
 
-// withCORS allows the Expo app (and a local web build) to call the API from a
-// different origin. Kept permissive for development; tighten the allowed
-// origin before production.
+// withCORS allows the dashboard (and the Expo app) to call the API cross-origin.
+// Permissive for development; tighten the allowed origin before production.
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {

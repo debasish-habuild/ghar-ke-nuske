@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/habuild/ghar-ke-nuske/backend/internal/auth"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/catalog"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/config"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/firebaseclient"
@@ -47,10 +48,11 @@ func run() error {
 	repo := catalog.NewRepository(db)
 	svc := catalog.NewService(repo)
 	handler := catalog.NewHandler(svc)
+	authn := auth.New(db)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(handler),
+		Handler:           router.New(handler, authn),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

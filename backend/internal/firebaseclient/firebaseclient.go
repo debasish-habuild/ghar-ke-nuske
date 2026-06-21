@@ -25,7 +25,11 @@ import (
 // shutdown to flush and release the underlying gRPC connection.
 func New(ctx context.Context, cfg config.Config) (*firestore.Client, func() error, error) {
 	var opts []option.ClientOption
-	if cfg.CredentialsFile != "" {
+	switch {
+	case cfg.CredentialsJSON != "":
+		// Host-injected secret (e.g. Render env var) takes precedence.
+		opts = append(opts, option.WithCredentialsJSON([]byte(cfg.CredentialsJSON)))
+	case cfg.CredentialsFile != "":
 		opts = append(opts, option.WithCredentialsFile(cfg.CredentialsFile))
 	}
 

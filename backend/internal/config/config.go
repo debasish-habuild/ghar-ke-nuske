@@ -24,6 +24,12 @@ type Config struct {
 	// ADC file). Setting it explicitly keeps behaviour predictable across
 	// machines.
 	CredentialsFile string
+
+	// CredentialsJSON is the raw service-account key JSON, supplied via the
+	// FIREBASE_CREDENTIALS_JSON env var. This is the convenient path for hosts
+	// like Render that inject secrets as env vars rather than files. When set,
+	// it takes precedence over CredentialsFile.
+	CredentialsJSON string
 }
 
 // Load reads configuration from the environment and validates it.
@@ -32,6 +38,7 @@ func Load() (Config, error) {
 		Port:            getEnv("PORT", "8080"),
 		ProjectID:       os.Getenv("FIREBASE_PROJECT_ID"),
 		CredentialsFile: os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+		CredentialsJSON: os.Getenv("FIREBASE_CREDENTIALS_JSON"),
 	}
 
 	if cfg.ProjectID == "" {

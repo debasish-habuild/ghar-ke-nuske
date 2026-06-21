@@ -1,23 +1,41 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { Feather } from '@expo/vector-icons';
-import { Colors, Fonts, Spacing } from '../constants/theme';
-
-const SYMPTOMS = [
-  {e:'🤧',n:'Cold'},{e:'😮‍💨',n:'Cough'},{e:'🌡️',n:'Fever'},
-  {e:'😣',n:'Acne'},{e:'💆',n:'Hair Fall'},{e:'😰',n:'Stress'},
-  {e:'🤢',n:'Indigestion'},{e:'😴',n:'Insomnia'},{e:'🦴',n:'Joint Pain'},
-  {e:'👁️',n:'Eye Issues'},{e:'🫀',n:'Fatigue'},{e:'🦷',n:'Dental Pain'},
-];
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import { Feather } from "@expo/vector-icons";
+import { Colors, Fonts, Spacing } from "../constants/theme";
+import { useCatalog } from "../context/CatalogContext";
 
 export default function SymptomScreen() {
   const nav = useNavigation<any>();
+  const { categories, loading } = useCatalog();
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const toggle = (name: string) => {
-    setSelected(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n; });
+  // Symptoms are categories tagged with the "symptom" role in Firestore.
+  const symptoms = categories.filter((c) => c.roles.includes("symptom"));
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+
+  const onContinue = () => {
+    const ids = [...selected];
+    const first = categories.find((c) => c.id === ids[0]);
+    nav.navigate("Remedies", {
+      category: ids.length === 1 && first ? first.label : "Your Symptoms",
+      categoryId: ids[0],
+    });
   };
 
   return (
@@ -26,44 +44,95 @@ export default function SymptomScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
           <Feather name="chevron-left" size={20} color={Colors.text} />
         </TouchableOpacity>
-        <View><Text style={s.headTitle}>What's your problem?</Text><Text style={s.headSub}>Select one or more symptoms</Text></View>
+        <View>
+          <Text style={s.headTitle}>What's your problem?</Text>
+          <Text style={s.headSub}>Select one or more symptoms</Text>
+        </View>
       </View>
-      <FlatList
-        data={SYMPTOMS}
-        numColumns={3}
-        keyExtractor={i => i.n}
-        contentContainerStyle={{ padding: Spacing.lg, gap: 10 }}
-        columnWrapperStyle={{ gap: 10 }}
-        renderItem={({ item }) => {
-          const on = selected.has(item.n);
-          return (
-            <TouchableOpacity style={[s.chip, on && s.chipOn, { flex: 1 }]} onPress={() => toggle(item.n)}>
-              <Text style={{ fontSize: 24 }}>{item.e}</Text>
-              <Text style={[s.chipText, on && s.chipTextOn]}>{item.n}</Text>
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
+      ) : (
+        <FlatList
+          data={symptoms}
+          numColumns={3}
+          keyExtractor={(i) => i.id}
+          contentContainerStyle={{ padding: Spacing.lg, gap: 10 }}
+          columnWrapperStyle={{ gap: 10 }}
+          renderItem={({ item }) => {
+            const on = selected.has(item.id);
+            return (
+              <TouchableOpacity
+                style={[s.chip, on && s.chipOn, { flex: 1 }]}
+                onPress={() => toggle(item.id)}
+              >
+                <Text style={{ fontSize: 24 }}>{item.emoji}</Text>
+                <Text style={[s.chipText, on && s.chipTextOn]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+          ListFooterComponent={
+            <TouchableOpacity
+              style={[s.btn, selected.size === 0 && s.btnDisabled]}
+              disabled={selected.size === 0}
+              onPress={onContinue}
+            >
+              <Text style={s.btnText}>Continue</Text>
+              <Feather name="arrow-right" size={16} color="#fff" />
             </TouchableOpacity>
-          );
-        }}
-        ListFooterComponent={() => (
-          <TouchableOpacity style={s.btn} onPress={() => nav.navigate('Remedies', { category: 'Your Symptoms' })}>
-            <Text style={s.btnText}>Continue</Text>
-            <Feather name="arrow-right" size={16} color="#fff" />
-          </TouchableOpacity>
-        )}
-      />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const s = StyleSheet.create({
-  safe:       { flex: 1, backgroundColor: Colors.bg },
-  header:     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Spacing.lg },
-  backBtn:    { width: 36, height: 36, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center', justifyContent: 'center' },
-  headTitle:  { fontFamily: Fonts.bold, fontSize: 19, color: Colors.text },
-  headSub:    { fontFamily: Fonts.regular, fontSize: 12, color: Colors.text3 },
-  chip:       { alignItems: 'center', gap: 6, padding: 14, borderRadius: 14, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: '#fff' },
-  chipOn:     { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  chipText:   { fontFamily: Fonts.medium, fontSize: 11, color: Colors.text3, textAlign: 'center' },
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: Spacing.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#f5f5f5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headTitle: { fontFamily: Fonts.bold, fontSize: 19, color: Colors.text },
+  headSub: { fontFamily: Fonts.regular, fontSize: 12, color: Colors.text3 },
+  chip: {
+    alignItems: "center",
+    gap: 6,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: "#fff",
+  },
+  chipOn: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
+  chipText: {
+    fontFamily: Fonts.medium,
+    fontSize: 11,
+    color: Colors.text3,
+    textAlign: "center",
+  },
   chipTextOn: { color: Colors.primary, fontFamily: Fonts.semibold },
-  btn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16, backgroundColor: Colors.primary, borderRadius: 12, padding: 15 },
-  btnText:    { fontFamily: Fonts.semibold, fontSize: 15, color: '#fff' },
+  btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    padding: 15,
+  },
+  btnDisabled: { opacity: 0.5 },
+  btnText: { fontFamily: Fonts.semibold, fontSize: 15, color: "#fff" },
 });

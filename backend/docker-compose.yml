@@ -1,0 +1,26 @@
+# Run the backend on a VPS with: docker compose up -d --build
+#
+# Provide the Firebase service-account key. Two options:
+#   A) Mount the key file (recommended) — uncomment the volume + the
+#      GOOGLE_APPLICATION_CREDENTIALS env line, and place the JSON next to this
+#      file as serviceAccountKey.json.
+#   B) Paste the key JSON into FIREBASE_CREDENTIALS_JSON (single line) in a .env
+#      file beside this one.
+
+services:
+  backend:
+    build: .
+    image: ghar-ke-nuske-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      FIREBASE_PROJECT_ID: "ghar-ke-nuske-dev"
+      # Option A — mounted key file:
+      GOOGLE_APPLICATION_CREDENTIALS: "/secrets/serviceAccountKey.json"
+      # Option B — inline JSON (from .env). Leave blank if using the file above.
+      FIREBASE_CREDENTIALS_JSON: "${FIREBASE_CREDENTIALS_JSON:-}"
+    volumes:
+      # Option A — mount your key read-only. Create ./serviceAccountKey.json first.
+      - ./serviceAccountKey.json:/secrets/serviceAccountKey.json:ro
