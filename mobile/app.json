@@ -18,11 +18,21 @@
       "adaptiveIcon": {
         "backgroundColor": "#13665A"
       },
-      "package": "com.herbalapp.gharkenuskhe"
+      "package": "com.habuild.gharkenuskhe",
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      [
+        "expo-notifications",
+        {
+          "color": "#13665A"
+        }
+      ],
+      "./plugins/withFirebaseMessagingManifestFix"
     ],
     "extra": {
       "eas": {

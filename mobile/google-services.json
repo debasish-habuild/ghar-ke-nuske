@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "136816054290",
+    "project_id": "ghar-ke-nuske-dev",
+    "storage_bucket": "ghar-ke-nuske-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136816054290:android:f31c0428680a3b496488cb",
+        "android_client_info": {
+          "package_name": "com.habuild.gharkenuskhe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBytmrwXFyecBIcfhM5nLBjA44Q3hHJxpQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
