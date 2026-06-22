@@ -2,6 +2,7 @@
   "expo": {
     "name": "Ghar Ke Nuskhe",
     "slug": "herbal-app",
+    "scheme": "gharkenuskhe",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -35,6 +36,7 @@
     ],
     "extra": {
       "apiUrl": "https://gkn-api.vps.sarvinshrivastava.space",
+      "shareBaseUrl": "https://ghar-ke-nuske-dashboard.vercel.app",
       "eas": {
         "projectId": "8379f92b-8ede-497d-b21c-2678647b2f8d"
       }

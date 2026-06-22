@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Ghar Ke Nuskhe</title>
+    <style>
+      :root {
+        --teal: #13665a;
+        --teal-dark: #0d4e44;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: radial-gradient(120% 80% at 50% -10%, #1c8676 0%, var(--teal) 45%, var(--teal-dark) 100%);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card { text-align: center; max-width: 320px; }
+      .logo {
+        width: 64px; height: 64px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.14);
+        display: grid; place-items: center;
+        margin: 0 auto 18px;
+        font-size: 30px;
+      }
+      h1 { font-size: 20px; font-weight: 700; margin: 0 0 18px; letter-spacing: -0.01em; }
+      .spinner {
+        width: 26px; height: 26px; margin: 0 auto;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+      a { color: #fff; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="logo">🌿</div>
+      <h1>Opening Ghar Ke Nuskhe…</h1>
+      <div class="spinner" aria-label="Loading"></div>
+      <noscript>
+        <p><a href="https://play.google.com/store/apps/details?id=com.habuild.gharkenuskhe">Get the app</a></p>
+      </noscript>
+    </main>
+
+    <script>
+      // ── Config (see mobile/app.json) ─────────────────────────────────────────
+      var ANDROID_PACKAGE = "com.habuild.gharkenuskhe";
+      var APP_SCHEME = "gharkenuskhe";
+      // TODO: app not on the stores yet. Once published, point these at the real
+      // listings. For now they open the Play details page / App Store search so
+      // the "not installed" redirect can be demonstrated.
+      var PLAY_URL = "https://play.google.com/store/apps/details?id=" + ANDROID_PACKAGE;
+      var IOS_URL = "https://apps.apple.com/search?term=ghar%20ke%20nuskhe";
+
+      var rid = new URLSearchParams(location.search).get("r") || "";
+      var path = rid ? "remedy/" + encodeURIComponent(rid) : "";
+      var ua = navigator.userAgent || "";
+      var isAndroid = /android/i.test(ua);
+      var isIOS = /iphone|ipad|ipod/i.test(ua) || (/Mac/i.test(ua) && "ontouchend" in document);
+
+      // Auto-route immediately — no buttons. App opens if installed, else store.
+      if (isAndroid) {
+        // Chrome's intent:// opens the app if installed, else follows
+        // browser_fallback_url to the Play Store automatically.
+        window.location.replace(
+          "intent://" + path + "#Intent;scheme=" + APP_SCHEME +
+            ";package=" + ANDROID_PACKAGE +
+            ";S.browser_fallback_url=" + encodeURIComponent(PLAY_URL) + ";end",
+        );
+      } else if (isIOS) {
+        var hidden = false;
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) hidden = true; // app opened — cancel store redirect
+        });
+        window.location.replace(APP_SCHEME + "://" + path);
+        setTimeout(function () {
+          if (!hidden) window.location.replace(IOS_URL);
+        }, 1200);
+      } else {
+        // Desktop / unknown — no app to open; send to the store listing.
+        window.location.replace(PLAY_URL);
+      }
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,17 +6,26 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { captureRef } from "react-native-view-shot";
+import RNShare from "react-native-share";
+import Constants from "expo-constants";
 import { RootStackParamList } from "../App";
 import { Fonts, Spacing, Palette } from "../constants/theme";
 import { useCatalog } from "../context/CatalogContext";
 import { useSaved } from "../context/SavedContext";
 import { useProfile } from "../context/ProfileContext";
 import { useTheme } from "../context/ThemeContext";
+import ShareCard from "../components/ShareCard";
+
+// Public landing that deep-links into the app (or sends people to the store).
+// Overridable via app.json `extra.shareBaseUrl`.
+const SHARE_BASE_URL: string =
+  (Constants.expoConfig?.extra as { shareBaseUrl?: string } | undefined)
+    ?.shareBaseUrl ?? "https://ghar-ke-nuske-dashboard.vercel.app";
 
 type Route = RouteProp<RootStackParamList, "Detail">;
 
@@ -29,6 +38,10 @@ export default function DetailScreen() {
   const { colors } = useTheme();
   const s = useMemo(() => makeStyles(colors), [colors]);
   const remedy = getRemedy(route.params.id);
+  // Off-screen V1 card we rasterise into the shared image. `shareSeed` is bumped
+  // on every share so the card re-picks a random benefit + ingredient order.
+  const shareRef = useRef<View>(null);
+  const [shareSeed, setShareSeed] = useState(0);
 
   // Opening a remedy's detail counts it toward the local "Used" stat (deduped).
   useEffect(() => {
@@ -38,14 +51,42 @@ export default function DetailScreen() {
   if (!remedy) return null;
   const saved = isSaved(remedy.id);
 
+  // Capture the V1 ShareCard to a PNG, then share the image together with a
+  // link to the /share landing page (which opens the app, or the store).
   const handleShare = async () => {
-    await Share.share({
-      message: `Check out this remedy: ${remedy.title} — ${remedy.benefit}`,
-    });
+    try {
+      // Re-randomise the card, then wait two frames for it to re-render before
+      // capturing so the shared image reflects the new pick.
+      setShareSeed((n) => n + 1);
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      const uri = await captureRef(shareRef, {
+        format: "png",
+        quality: 1,
+        width: 1080,
+        height: 1350,
+      });
+      const link = `${SHARE_BASE_URL}/share?r=${remedy.id}`;
+      const message = `${remedy.title} — ${remedy.benefit}\n\nTry it on Ghar Ke Nuskhe 🌿\n${link}`;
+      await RNShare.open({
+        url: uri.startsWith("file://") ? uri : `file://${uri}`,
+        message,
+        type: "image/png",
+        failOnCancel: false,
+      });
+    } catch {
+      // User dismissed the sheet or capture failed — nothing to do.
+    }
   };
 
   return (
     <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
+      {/* Parked off-screen: rendered so view-shot can rasterise it on share,
+          but never visible to the user. */}
+      <View style={s.offscreen} pointerEvents="none">
+        <ShareCard ref={shareRef} remedy={remedy} seed={shareSeed} />
+      </View>
       {/* Whole screen scrolls as one (like HomeScreen) — the hero scrolls away
           with the content. The black scroll background shows through the body
           sheet's rounded-corner cutouts. */}
@@ -167,6 +208,8 @@ const Section = ({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
+    // Parked far off-screen so it lays out (and can be captured) but is unseen.
+    offscreen: { position: "absolute", left: -10000, top: 0 },
     // Black backdrop revealed through the body sheet's rounded-corner cutouts.
     scroll: { flex: 1, backgroundColor: "#000" },
     hero: { height: 200, position: "relative" },

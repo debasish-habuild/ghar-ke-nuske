@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -43,6 +43,18 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+// Deep links. The web /share page redirects to `gharkenuskhe://remedy/<id>`
+// when the app is installed; that opens straight to the remedy's detail.
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ["gharkenuskhe://"],
+  config: {
+    screens: {
+      Home: "",
+      Detail: "remedy/:id",
+    },
+  },
+};
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -74,7 +86,7 @@ export default function App() {
       <ProfileProvider>
         <CatalogProvider>
           <SavedProvider>
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <ThemedStatusBar />
               <Stack.Navigator
                 screenOptions={{
