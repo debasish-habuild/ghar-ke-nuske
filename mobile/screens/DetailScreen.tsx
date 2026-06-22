@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../App";
-import { Fonts, Spacing, Radius, Palette } from "../constants/theme";
+import { Fonts, Spacing, Palette } from "../constants/theme";
 import { useCatalog } from "../context/CatalogContext";
 import { useSaved } from "../context/SavedContext";
 import { useProfile } from "../context/ProfileContext";
@@ -46,85 +46,90 @@ export default function DetailScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
-      {/* Hero Image — sits below the status bar (top safe-area inset) so the
+      {/* Whole screen scrolls as one (like HomeScreen) — the hero scrolls away
+          with the content. The black scroll background shows through the body
+          sheet's rounded-corner cutouts. */}
+      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+        {/* Hero Image — sits below the status bar (top safe-area inset) so the
           back/save buttons no longer collide with the notification bar. */}
-      <View style={s.hero}>
-        <Image
-          source={{ uri: remedy.img }}
-          style={StyleSheet.absoluteFillObject}
-          resizeMode="cover"
-        />
-        <View style={s.heroOverlay} />
-        <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          {/* Fixed dark glyph: this button floats on the photo in both themes. */}
-          <Feather name="chevron-left" size={18} color="#292929" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={s.saveBtn}
-          onPress={() => toggleSave(remedy.id)}
-        >
-          <Ionicons
-            name={saved ? "heart" : "heart-outline"}
-            size={18}
-            color={colors.red}
+        <View style={s.hero}>
+          <Image
+            source={{ uri: remedy.img }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
           />
-        </TouchableOpacity>
-      </View>
-
-      {/* Body */}
-      <ScrollView style={s.body} showsVerticalScrollIndicator={false}>
-        <Text style={s.title}>{remedy.title}</Text>
-        <View style={s.badges}>
-          <View style={s.badgeG}>
-            <Text style={s.badgeGText}>⏱ {remedy.time}</Text>
-          </View>
-          <View style={s.badgeG}>
-            <Text style={s.badgeGText}>🌿 {remedy.ing_n} ingredients</Text>
-          </View>
-          <View style={s.badgeO}>
-            <Text style={s.badgeOText}>📁 {remedy.cat}</Text>
-          </View>
+          <View style={s.heroOverlay} />
+          <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
+            {/* Fixed dark glyph: this button floats on the photo in both themes. */}
+            <Feather name="chevron-left" size={18} color="#292929" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={s.saveBtn}
+            onPress={() => toggleSave(remedy.id)}
+          >
+            <Ionicons
+              name={saved ? "heart" : "heart-outline"}
+              size={18}
+              color={colors.red}
+            />
+          </TouchableOpacity>
         </View>
 
-        <Section title="Ingredients">
-          {remedy.ingredients.map((ing, i) => (
-            <View key={i} style={s.ingRow}>
-              <View style={s.ingDot} />
-              <Text style={s.ingName}>{ing.n}</Text>
-              <Text style={s.ingAmt}>{ing.a}</Text>
+        {/* Body sheet — a plain View now; the outer ScrollView does the scrolling */}
+        <View style={s.body}>
+          <Text style={s.title}>{remedy.title}</Text>
+          <View style={s.badges}>
+            <View style={s.badgeG}>
+              <Text style={s.badgeGText}>⏱ {remedy.time}</Text>
             </View>
-          ))}
-        </Section>
+            <View style={s.badgeG}>
+              <Text style={s.badgeGText}>🌿 {remedy.ing_n} ingredients</Text>
+            </View>
+            <View style={s.badgeO}>
+              <Text style={s.badgeOText}>📁 {remedy.cat}</Text>
+            </View>
+          </View>
 
-        <Section title="Steps">
-          {remedy.steps.map((step, i) => (
-            <View key={i} style={s.stepRow}>
-              <View style={s.stepNum}>
-                <Text style={s.stepNumText}>{i + 1}</Text>
+          <Section title="Ingredients">
+            {remedy.ingredients.map((ing, i) => (
+              <View key={i} style={s.ingRow}>
+                <View style={s.ingDot} />
+                <Text style={s.ingName}>{ing.n}</Text>
+                <Text style={s.ingAmt}>{ing.a}</Text>
               </View>
-              <Text style={s.stepText}>{step}</Text>
-            </View>
-          ))}
-        </Section>
+            ))}
+          </Section>
 
-        <Section title="Benefits">
-          {remedy.benefits.map((b, i) => (
-            <View key={i} style={s.benRow}>
-              <Text style={s.benCheck}>✓</Text>
-              <Text style={s.benText}>{b}</Text>
-            </View>
-          ))}
-        </Section>
+          <Section title="Steps">
+            {remedy.steps.map((step, i) => (
+              <View key={i} style={s.stepRow}>
+                <View style={s.stepNum}>
+                  <Text style={s.stepNumText}>{i + 1}</Text>
+                </View>
+                <Text style={s.stepText}>{step}</Text>
+              </View>
+            ))}
+          </Section>
 
-        <Section title="Precautions">
-          {remedy.precautions.map((p, i) => (
-            <View key={i} style={s.precRow}>
-              <Text style={s.precIcon}>⚠️</Text>
-              <Text style={s.precText}>{p}</Text>
-            </View>
-          ))}
-        </Section>
-        <View style={{ height: 24 }} />
+          <Section title="Benefits">
+            {remedy.benefits.map((b, i) => (
+              <View key={i} style={s.benRow}>
+                <Text style={s.benCheck}>✓</Text>
+                <Text style={s.benText}>{b}</Text>
+              </View>
+            ))}
+          </Section>
+
+          <Section title="Precautions">
+            {remedy.precautions.map((p, i) => (
+              <View key={i} style={s.precRow}>
+                <Text style={s.precIcon}>⚠️</Text>
+                <Text style={s.precText}>{p}</Text>
+              </View>
+            ))}
+          </Section>
+          <View style={{ height: 24 }} />
+        </View>
       </ScrollView>
 
       {/* Actions — saving lives on the heart button in the hero, so the only
@@ -162,6 +167,8 @@ const Section = ({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
+    // Black backdrop revealed through the body sheet's rounded-corner cutouts.
+    scroll: { flex: 1, backgroundColor: "#000" },
     hero: { height: 200, position: "relative" },
     heroOverlay: {
       ...StyleSheet.absoluteFillObject,
@@ -189,7 +196,15 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    body: { flex: 1, padding: Spacing.lg },
+    body: {
+      padding: Spacing.lg,
+      // Curve the white body up over the hero photo (matches Home's sheet).
+      backgroundColor: c.bg,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      marginTop: -14,
+      paddingTop: Spacing.xl,
+    },
     title: {
       fontFamily: Fonts.bold,
       fontSize: 22,

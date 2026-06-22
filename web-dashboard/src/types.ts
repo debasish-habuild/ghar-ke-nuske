@@ -27,6 +27,7 @@ export interface Category {
   emoji: string;
   color: string;
   iconKey: string;
+  imageUrl: string;
   order: number;
   roles: string[];
 }
@@ -69,6 +70,7 @@ export const EMPTY_CATEGORY: Category = {
   emoji: "",
   color: "#E8F5E9",
   iconKey: "",
+  imageUrl: "",
   order: 0,
   roles: ["concern"],
 };

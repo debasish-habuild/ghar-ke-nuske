@@ -32,6 +32,7 @@ export interface Category {
   emoji: string;
   color: string;
   iconKey: string;
+  imageUrl: string;
   order: number;
   roles: string[];
 }
@@ -98,6 +99,7 @@ function adaptCategory(c: ApiCategory): Category {
     emoji: c.emoji,
     color: c.color,
     iconKey: c.iconKey,
+    imageUrl: c.imageUrl ?? "",
     order: c.order,
     roles: c.roles ?? [],
   };

@@ -50,6 +50,7 @@ export interface ApiCategory {
   emoji: string;
   color: string;
   iconKey: string;
+  imageUrl: string;
   order: number;
   roles: string[];
 }

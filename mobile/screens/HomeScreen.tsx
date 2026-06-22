@@ -109,21 +109,19 @@ export default function HomeScreen() {
       >
         {/* ── Hero ── */}
         <View style={s.hero}>
-          <Image
-            source={
-              bannerImageUrl
-                ? { uri: bannerImageUrl }
-                : require("../assets/hero.png")
-            }
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-            }}
-            resizeMode="stretch"
-          />
+          {bannerImageUrl && (
+            <Image
+              source={{ uri: bannerImageUrl }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+              }}
+              resizeMode="stretch"
+            />
+          )}
           <LinearGradient
             colors={[
               "rgba(13,59,32,0.95)",
@@ -154,145 +152,151 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Search Bar ── */}
-        <View style={s.searchWrap}>
-          <TouchableOpacity
-            style={s.searchBar}
-            onPress={() => nav.navigate("Search")}
-            activeOpacity={0.8}
-          >
-            <Feather name="search" size={16} color={colors.text3} />
-            <Text style={s.searchPlaceholder}>
-              {placeholder || "Search Cold…"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {error && (
-          <View style={s.errorBox}>
-            <Text style={s.errorText}>
-              Couldn't reach the server. Pull data once it's running.
-            </Text>
+        {/* ── Content sheet: curves up over the hero banner ── */}
+        <View style={s.sheet}>
+          {/* ── Search Bar ── */}
+          <View style={s.searchWrap}>
+            <TouchableOpacity
+              style={s.searchBar}
+              onPress={() => nav.navigate("Search")}
+              activeOpacity={0.8}
+            >
+              <Feather name="search" size={16} color={colors.text3} />
+              <Text style={s.searchPlaceholder}>
+                {placeholder || "Search Cold…"}
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
 
-        {/* ── Browse by Concern ── */}
-        <View style={s.secHead}>
-          <Text style={s.secTitle}>Browse By Concern</Text>
-          <Text style={s.secSub}>Herbal Remedies to ease out problems</Text>
-        </View>
-        {loading ? (
-          <ActivityIndicator
-            style={{ marginVertical: 24 }}
-            color={colors.primary}
-          />
-        ) : (
+          {error && (
+            <View style={s.errorBox}>
+              <Text style={s.errorText}>
+                Couldn't reach the server. Pull data once it's running.
+              </Text>
+            </View>
+          )}
+
+          {/* ── Browse by Concern ── */}
+          <View style={s.secHead}>
+            <Text style={s.secTitle}>Browse By Concern</Text>
+            <Text style={s.secSub}>Herbal Remedies to ease out problems</Text>
+          </View>
+          {loading ? (
+            <ActivityIndicator
+              style={{ marginVertical: 24 }}
+              color={colors.primary}
+            />
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[s.hScroll, { paddingBottom: 10 }]}
+            >
+              {concerns.map((cat) => {
+                // Prefer an uploaded image; fall back to the bundled icon.
+                const icon = cat.imageUrl
+                  ? { uri: cat.imageUrl }
+                  : CATEGORY_ICONS[cat.iconKey];
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={s.catCard}
+                    onPress={() =>
+                      nav.navigate("Remedies", {
+                        category: cat.label,
+                        categoryId: cat.id,
+                      })
+                    }
+                    activeOpacity={0.85}
+                  >
+                    {icon ? (
+                      <Image
+                        source={icon}
+                        style={s.catPhoto}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          s.catEmojiWrap,
+                          { backgroundColor: cat.color || colors.primaryLight },
+                        ]}
+                      >
+                        <Text style={s.catEmoji}>{cat.emoji || "🌿"}</Text>
+                      </View>
+                    )}
+                    <Text style={s.catLabel} numberOfLines={1}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {/* ── Today's Recipe ── */}
+          {todays && (
+            <TouchableOpacity
+              style={s.recipeCard}
+              onPress={() => nav.navigate("Detail", { id: todays.id })}
+              activeOpacity={0.9}
+            >
+              <View style={s.recipeBody}>
+                <Text style={s.recipeLabel}>TODAY'S RECIPE</Text>
+                <Text style={s.recipeTitle} numberOfLines={2}>
+                  {todays.title}
+                </Text>
+                <Text style={s.recipeLink}>Know More ›</Text>
+              </View>
+              <Image
+                source={{ uri: todays.img }}
+                style={s.recipeImg}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
+
+          {/* ── Kitchen Finder CTA ── */}
+          <TouchableOpacity
+            style={s.kfBtn}
+            onPress={() => nav.navigate("Ingredients")}
+            activeOpacity={0.9}
+          >
+            <Text style={s.kfText}>Kitchen Finder</Text>
+            <View style={s.kfIcon}>
+              <Feather name="arrow-right" size={18} color="#fff" />
+            </View>
+          </TouchableOpacity>
+
+          {/* ── Popular Remedies ── */}
+          <View style={s.secHead}>
+            <Text style={s.secTitle}>Popular Remedies</Text>
+            <Text style={s.secSub}>Trusted by thousands</Text>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[s.hScroll, { paddingBottom: 10 }]}
+            contentContainerStyle={[s.hScroll, { paddingBottom: 24 }]}
           >
-            {concerns.map((cat) => {
-              const icon = CATEGORY_ICONS[cat.iconKey];
-              return (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={s.catCard}
-                  onPress={() =>
-                    nav.navigate("Remedies", {
-                      category: cat.label,
-                      categoryId: cat.id,
-                    })
-                  }
-                  activeOpacity={0.85}
-                >
-                  {icon ? (
-                    <Image
-                      source={icon}
-                      style={s.catPhoto}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        s.catEmojiWrap,
-                        { backgroundColor: cat.color || colors.primaryLight },
-                      ]}
-                    >
-                      <Text style={s.catEmoji}>{cat.emoji || "🌿"}</Text>
-                    </View>
-                  )}
-                  <Text style={s.catLabel} numberOfLines={1}>
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {popularList.map((r) => (
+              <TouchableOpacity
+                key={r.id}
+                style={s.catCard}
+                onPress={() => nav.navigate("Detail", { id: r.id })}
+                activeOpacity={0.85}
+              >
+                <Image
+                  source={{ uri: r.img }}
+                  style={s.catPhoto}
+                  resizeMode="cover"
+                />
+                <Text style={s.catLabel} numberOfLines={1}>
+                  {r.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
-        )}
-
-        {/* ── Today's Recipe ── */}
-        {todays && (
-          <TouchableOpacity
-            style={s.recipeCard}
-            onPress={() => nav.navigate("Detail", { id: todays.id })}
-            activeOpacity={0.9}
-          >
-            <View style={s.recipeBody}>
-              <Text style={s.recipeLabel}>TODAY'S RECIPE</Text>
-              <Text style={s.recipeTitle} numberOfLines={2}>
-                {todays.title}
-              </Text>
-              <Text style={s.recipeLink}>Know More ›</Text>
-            </View>
-            <Image
-              source={{ uri: todays.img }}
-              style={s.recipeImg}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        )}
-
-        {/* ── Kitchen Finder CTA ── */}
-        <TouchableOpacity
-          style={s.kfBtn}
-          onPress={() => nav.navigate("Ingredients")}
-          activeOpacity={0.9}
-        >
-          <Text style={s.kfText}>Kitchen Finder</Text>
-          <View style={s.kfIcon}>
-            <Feather name="arrow-right" size={18} color="#fff" />
-          </View>
-        </TouchableOpacity>
-
-        {/* ── Popular Remedies ── */}
-        <View style={s.secHead}>
-          <Text style={s.secTitle}>Popular Remedies</Text>
-          <Text style={s.secSub}>Trusted by thousands</Text>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[s.hScroll, { paddingBottom: 24 }]}
-        >
-          {popularList.map((r) => (
-            <TouchableOpacity
-              key={r.id}
-              style={s.catCard}
-              onPress={() => nav.navigate("Detail", { id: r.id })}
-              activeOpacity={0.85}
-            >
-              <Image
-                source={{ uri: r.img }}
-                style={s.catPhoto}
-                resizeMode="cover"
-              />
-              <Text style={s.catLabel} numberOfLines={1}>
-                {r.title}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -301,8 +305,29 @@ export default function HomeScreen() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: c.bg },
-    scroll: { flex: 1 },
-    hero: { height: 225, justifyContent: "flex-end", overflow: "hidden" },
+    // Black backdrop shows through the sheet's rounded-corner cutouts (below the
+    // hero image) — without touching the top safe-area strip / status-bar icons.
+    scroll: { flex: 1, backgroundColor: "#000" },
+    hero: {
+      height: 225,
+      justifyContent: "flex-end",
+      overflow: "hidden",
+      // Fallback base when no banner image is set (bundled hero.png was removed).
+      backgroundColor: c.primaryDark,
+    },
+    sheet: {
+      backgroundColor: c.bg,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      marginTop: -16,
+      paddingTop: Spacing.sm,
+      // Soft lift so the curved sheet reads as sitting above the banner.
+      shadowColor: c.shadow,
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: -3 },
+      elevation: 8,
+    },
     heroTopbar: {
       position: "absolute",
       top: 12,
@@ -317,7 +342,7 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    heroBody: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+    heroBody: { padding: Spacing.lg, paddingBottom: 34 },
     heroTitle: {
       fontFamily: Fonts.bold,
       fontSize: 36,

@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { EMPTY_CATEGORY, type Category } from "../types";
-import { Button, Field, Modal, NumberInput, TextInput } from "./ui";
+import {
+  Button,
+  Field,
+  ImageUploadField,
+  Modal,
+  NumberInput,
+  TextInput,
+} from "./ui";
 
 const ICON_KEYS = ["cold", "digestion", "hair", "skincare"];
 
@@ -57,7 +64,11 @@ export default function CategoriesTab() {
         <div className="list">
           {items.map((c) => (
             <div className="row-card" key={c.id}>
-              <div className="row-emoji">{c.emoji || "🏷️"}</div>
+              {c.imageUrl ? (
+                <img className="row-thumb" src={c.imageUrl} alt={c.name} />
+              ) : (
+                <div className="row-emoji">{c.emoji || "🏷️"}</div>
+              )}
               <div className="row-main">
                 <div className="row-title">{c.name}</div>
                 <div className="row-sub">{(c.roles || []).join(", ")}</div>
@@ -130,8 +141,19 @@ function CategoryForm({
         />
       </Field>
 
+      <Field
+        label="Tile image"
+        hint="Upload an image for the Home tile — overrides the bundled icon below"
+      >
+        <ImageUploadField
+          value={form.imageUrl}
+          onChange={(v) => set("imageUrl", v)}
+          folder="categories"
+        />
+      </Field>
+
       <div className="row-2">
-        <Field label="Icon" hint="Picture on the Home tile">
+        <Field label="Icon" hint="Bundled fallback if no image is uploaded">
           <select
             className="input"
             value={form.iconKey}

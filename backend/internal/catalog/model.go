@@ -39,15 +39,16 @@ type Remedy struct {
 //
 // Categories split by `roles`: "concern" categories (shown in the Home
 // "Browse By Concern" rail) carry a Color + IconKey that maps to a bundled
-// app icon asset; "symptom" categories (the symptom picker) carry an Emoji.
+// app icon asset, or an uploaded ImageURL which takes precedence over IconKey.
 type Category struct {
-	ID      string   `firestore:"-"       json:"id"`
-	Name    string   `firestore:"name"    json:"name"`
-	Emoji   string   `firestore:"emoji"   json:"emoji"`
-	Color   string   `firestore:"color"   json:"color"`
-	IconKey string   `firestore:"iconKey" json:"iconKey"`
-	Order   int      `firestore:"order"   json:"order"`
-	Roles   []string `firestore:"roles"   json:"roles"`
+	ID       string   `firestore:"-"        json:"id"`
+	Name     string   `firestore:"name"     json:"name"`
+	Emoji    string   `firestore:"emoji"    json:"emoji"`
+	Color    string   `firestore:"color"    json:"color"`
+	IconKey  string   `firestore:"iconKey"  json:"iconKey"`
+	ImageURL string   `firestore:"imageUrl" json:"imageUrl"`
+	Order    int      `firestore:"order"    json:"order"`
+	Roles    []string `firestore:"roles"    json:"roles"`
 }
 
 // Ingredient is a single ingredient from the `ingredients` collection. `group`

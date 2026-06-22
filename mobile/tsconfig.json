@@ -1,6 +1,10 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    // Override Expo base's deprecated "node" resolution. "bundler" matches how
+    // Metro resolves modules and isn't flagged deprecated by any TS version.
+    "module": "esnext",
+    "moduleResolution": "bundler"
   }
 }
