@@ -11,3 +11,7 @@
 # Go
 *.test
 *.out
+
+# Local compose override (not for VPS)
+docker-compose.override.yml
+.vercel

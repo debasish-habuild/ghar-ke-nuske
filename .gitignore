@@ -1,0 +1,8 @@
+# firebase
+.firebaserc
+firebase.json
+firestore.indexes.json
+firestore.rules
+
+# playright
+.playwright-mcp/

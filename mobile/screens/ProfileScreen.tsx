@@ -33,7 +33,6 @@ export default function ProfileScreen() {
     // { icon: "🎯", label: "Health Goals", bg: "#e8f5f3" },
     // { icon: "🚫", label: "Allergies & Restrictions", bg: "#fff3e0" },
     { icon: "🔔", label: "Push Notifications", bg: "#f3e5f5", toggle: true },
-    { icon: "❓", label: "Help & Support", bg: "#fce4ec" },
   ];
 
   return (

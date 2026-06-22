@@ -3,7 +3,6 @@ import { api } from "../api";
 import { EMPTY_CATEGORY, type Category } from "../types";
 import { Button, Field, Modal, NumberInput, TextInput } from "./ui";
 
-const ROLES = ["concern", "symptom"];
 const ICON_KEYS = ["cold", "digestion", "hair", "skincare"];
 
 export default function CategoriesTab() {
@@ -103,19 +102,12 @@ function CategoryForm({
 }) {
   const [form, setForm] = useState<Category>({
     ...value,
-    roles: value.roles || [],
+    // Every category is a concern now (the symptom role was removed).
+    roles: ["concern"],
   });
   const [busy, setBusy] = useState(false);
   const set = <K extends keyof Category>(k: K, v: Category[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
-
-  const toggleRole = (role: string) =>
-    set(
-      "roles",
-      form.roles.includes(role)
-        ? form.roles.filter((r) => r !== role)
-        : [...form.roles, role],
-    );
 
   const submit = async () => {
     setBusy(true);
@@ -128,8 +120,6 @@ function CategoryForm({
     }
   };
 
-  const isConcern = form.roles.includes("concern");
-
   return (
     <Modal title={isNew ? "Add Condition" : "Edit Condition"} onClose={onClose}>
       <Field label="Name">
@@ -140,60 +130,30 @@ function CategoryForm({
         />
       </Field>
 
-      <Field
-        label="Used as"
-        hint="Concern = Home page tile · Symptom = symptom picker"
-      >
-        <div className="chips-select">
-          {ROLES.map((r) => (
-            <button
-              type="button"
-              key={r}
-              className={`chip-toggle ${form.roles.includes(r) ? "on" : ""}`}
-              onClick={() => toggleRole(r)}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-      </Field>
-
-      {isConcern ? (
-        <>
-          <div className="row-2">
-            <Field label="Icon" hint="Picture on the Home tile">
-              <select
-                className="input"
-                value={form.iconKey}
-                onChange={(e) => set("iconKey", e.target.value)}
-              >
-                <option value="">— none —</option>
-                {ICON_KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {k}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Background color">
-              <input
-                className="input"
-                type="color"
-                value={form.color || "#E8F5E9"}
-                onChange={(e) => set("color", e.target.value)}
-              />
-            </Field>
-          </div>
-        </>
-      ) : (
-        <Field label="Emoji" hint="Shown in the symptom picker">
-          <TextInput
-            value={form.emoji}
-            onChange={(v) => set("emoji", v)}
-            placeholder="🤧"
+      <div className="row-2">
+        <Field label="Icon" hint="Picture on the Home tile">
+          <select
+            className="input"
+            value={form.iconKey}
+            onChange={(e) => set("iconKey", e.target.value)}
+          >
+            <option value="">— none —</option>
+            {ICON_KEYS.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Background color">
+          <input
+            className="input"
+            type="color"
+            value={form.color || "#E8F5E9"}
+            onChange={(e) => set("color", e.target.value)}
           />
         </Field>
-      )}
+      </div>
 
       <Field label="Order">
         <NumberInput value={form.order} onChange={(v) => set("order", v)} />

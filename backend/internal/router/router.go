@@ -7,11 +7,12 @@ import (
 
 	"github.com/habuild/ghar-ke-nuske/backend/internal/auth"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/catalog"
+	"github.com/habuild/ghar-ke-nuske/backend/internal/upload"
 )
 
 // New builds the application's http.Handler: health check, public read routes,
 // the login endpoint, and auth-protected write routes — all wrapped in CORS.
-func New(catalogHandler *catalog.Handler, authn *auth.Authenticator) http.Handler {
+func New(catalogHandler *catalog.Handler, uploader *upload.Handler, authn *auth.Authenticator) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
@@ -27,6 +28,11 @@ func New(catalogHandler *catalog.Handler, authn *auth.Authenticator) http.Handle
 
 	// Mutations — each wrapped with Basic-Auth middleware.
 	catalogHandler.RegisterWrite(mux, authn.Middleware)
+
+	// Image-upload proxy — auth-protected. Receives the file and PUTs it to S3
+	// server-side, so the file-service token never reaches the dashboard bundle
+	// and there is no browser→S3 request (hence no S3-bucket CORS to manage).
+	mux.Handle("POST /api/upload", authn.Middleware(http.HandlerFunc(uploader.Upload)))
 
 	return withCORS(mux)
 }

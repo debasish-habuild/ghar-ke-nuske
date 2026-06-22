@@ -61,8 +61,12 @@ type Ingredient struct {
 }
 
 // AppConfig is the `config/app` document driving dynamic UI bits: the rotating
-// search placeholders and the id of the remedy featured as "today's recipe".
+// search placeholders, the id of the remedy featured as "today's recipe", and
+// the home-screen hero banner (image + overlaid heading/subtitle).
 type AppConfig struct {
 	SearchPlaceholders []string `firestore:"searchPlaceholders" json:"searchPlaceholders"`
 	TodaysRecipeID     string   `firestore:"todaysRecipeId"     json:"todaysRecipeId"`
+	BannerImageURL     string   `firestore:"bannerImageUrl"     json:"bannerImageUrl"`
+	BannerTitle        string   `firestore:"bannerTitle"        json:"bannerTitle"`
+	BannerSubtitle     string   `firestore:"bannerSubtitle"     json:"bannerSubtitle"`
 }

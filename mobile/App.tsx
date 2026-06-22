@@ -25,7 +25,6 @@ messaging().setBackgroundMessageHandler(async (message) => {
 
 import HomeScreen from "./screens/HomeScreen";
 import SearchScreen from "./screens/SearchScreen";
-import SymptomScreen from "./screens/SymptomScreen";
 import RemediesScreen from "./screens/RemediesScreen";
 import DetailScreen from "./screens/DetailScreen";
 import IngredientsScreen from "./screens/IngredientsScreen";
@@ -35,7 +34,6 @@ import ProfileScreen from "./screens/ProfileScreen";
 export type RootStackParamList = {
   Home: undefined;
   Search: undefined;
-  Symptom: undefined;
   Remedies: { category: string; categoryId?: string; ingredientId?: string };
   Detail: { id: string };
   Ingredients: undefined;
@@ -86,7 +84,6 @@ export default function App() {
               >
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Search" component={SearchScreen} />
-                <Stack.Screen name="Symptom" component={SymptomScreen} />
                 <Stack.Screen name="Remedies" component={RemediesScreen} />
                 <Stack.Screen name="Detail" component={DetailScreen} />
                 <Stack.Screen

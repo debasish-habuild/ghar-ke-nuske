@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-
-	"cloud.google.com/go/firestore"
 )
 
 var slugNonAlnum = regexp.MustCompile(`[^a-z0-9]+`)
@@ -109,9 +107,14 @@ func (r *Repository) DeleteIngredient(ctx context.Context, id string) error {
 
 // ── Config ────────────────────────────────────────────────────────────────
 
-// SaveAppConfig overwrites the config/app document.
+// SaveAppConfig overwrites the config/app document. The dashboard always sends
+// the complete config object, so a full Set (overwrite) is correct here.
+//
+// NOTE: do not use firestore.MergeAll — it only accepts map data and errors out
+// on a struct ("MergeAll can only be specified with map data"), which is what
+// previously made every config save fail with "failed to save config".
 func (r *Repository) SaveAppConfig(ctx context.Context, cfg AppConfig) error {
-	if _, err := r.db.Collection(configCollection).Doc(appConfigDoc).Set(ctx, cfg, firestore.MergeAll); err != nil {
+	if _, err := r.db.Collection(configCollection).Doc(appConfigDoc).Set(ctx, cfg); err != nil {
 		return fmt.Errorf("save app config: %w", err)
 	}
 	return nil

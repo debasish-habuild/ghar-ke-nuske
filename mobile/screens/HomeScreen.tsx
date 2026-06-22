@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   View,
   Text,
@@ -7,6 +13,7 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -28,10 +35,23 @@ export default function HomeScreen() {
     remedies,
     searchPlaceholders,
     todaysRecipeId,
+    bannerImageUrl,
+    bannerTitle,
+    bannerSubtitle,
     getRemedy,
     loading,
     error,
+    reload,
   } = useCatalog();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await reload();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [reload]);
   const { colors } = useTheme();
   const s = useMemo(() => makeStyles(colors), [colors]);
   const [placeholder, setPlaceholder] = useState("");
@@ -70,17 +90,31 @@ export default function HomeScreen() {
   const popular = remedies.filter((r) => r.isPopular);
   const popularList = popular.length > 0 ? popular : remedies;
   const todays = todaysRecipeId ? getRemedy(todaysRecipeId) : undefined;
-  // "Browse By Concern" shows only concern-role categories (image + color);
-  // symptom-role categories live in the Symptom picker instead.
+  // "Browse By Concern" shows only concern-role categories (image + color).
   const concerns = categories.filter((c) => c.roles.includes("concern"));
 
   return (
     <SafeAreaView style={s.safe} edges={["top"]}>
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={s.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         {/* ── Hero ── */}
         <View style={s.hero}>
           <Image
-            source={require("../assets/hero.png")}
+            source={
+              bannerImageUrl
+                ? { uri: bannerImageUrl }
+                : require("../assets/hero.png")
+            }
             style={{
               position: "absolute",
               top: 0,
@@ -97,7 +131,7 @@ export default function HomeScreen() {
               "transparent",
             ]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={s.heroTopbar}>
@@ -115,8 +149,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <View style={s.heroBody}>
-            <Text style={s.heroTitle}>Ghar Ke{"\n"}Nuskhe</Text>
-            <Text style={s.heroSub}>Herbal Remedies</Text>
+            <Text style={s.heroTitle}>{bannerTitle || "Ghar Ke\nNuskhe"}</Text>
+            <Text style={s.heroSub}>{bannerSubtitle || "Herbal Remedies"}</Text>
           </View>
         </View>
 

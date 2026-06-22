@@ -65,6 +65,9 @@ export interface ApiIngredient {
 export interface ApiConfig {
   searchPlaceholders: string[];
   todaysRecipeId: string;
+  bannerImageUrl: string;
+  bannerTitle: string;
+  bannerSubtitle: string;
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────

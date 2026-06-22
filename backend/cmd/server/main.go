@@ -16,6 +16,7 @@ import (
 	"github.com/habuild/ghar-ke-nuske/backend/internal/config"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/firebaseclient"
 	"github.com/habuild/ghar-ke-nuske/backend/internal/router"
+	"github.com/habuild/ghar-ke-nuske/backend/internal/upload"
 )
 
 func main() {
@@ -48,11 +49,12 @@ func run() error {
 	repo := catalog.NewRepository(db)
 	svc := catalog.NewService(repo)
 	handler := catalog.NewHandler(svc)
+	uploader := upload.New(cfg.FileServiceURL, cfg.FileServiceToken)
 	authn := auth.New(db)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(handler, authn),
+		Handler:           router.New(handler, uploader, authn),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

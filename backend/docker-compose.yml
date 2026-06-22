@@ -1,11 +1,13 @@
-# Run the backend on a VPS with: docker compose up -d --build
+# Run on a VPS with: docker compose up -d --build
 #
-# Provide the Firebase service-account key. Two options:
-#   A) Mount the key file (recommended) — uncomment the volume + the
-#      GOOGLE_APPLICATION_CREDENTIALS env line, and place the JSON next to this
-#      file as serviceAccountKey.json.
-#   B) Paste the key JSON into FIREBASE_CREDENTIALS_JSON (single line) in a .env
-#      file beside this one.
+# The backend listens only on localhost:8080; the host's nginx reverse-proxies
+# https://gkn-api.vps.sarvinshrivastava.space -> 127.0.0.1:8080 (TLS via the
+# existing *.vps.sarvinshrivastava.space wildcard cert).
+#
+# Provide the Firebase service-account key (one of):
+#   A) Mount the key file (recommended) — place the JSON next to this file as
+#      serviceAccountKey.json (mounted read-only below).
+#   B) Paste the key JSON into FIREBASE_CREDENTIALS_JSON in a .env file here.
 
 services:
   backend:
@@ -13,14 +15,15 @@ services:
     image: ghar-ke-nuske-backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080" # localhost only; reachable publicly via nginx HTTPS
     environment:
       PORT: "8080"
       FIREBASE_PROJECT_ID: "ghar-ke-nuske-dev"
-      # Option A — mounted key file:
       GOOGLE_APPLICATION_CREDENTIALS: "/secrets/serviceAccountKey.json"
-      # Option B — inline JSON (from .env). Leave blank if using the file above.
       FIREBASE_CREDENTIALS_JSON: "${FIREBASE_CREDENTIALS_JSON:-}"
+      # Image-upload proxy → company file-service. Token is read from the .env
+      # file beside this compose (or the host env); never baked into an image.
+      FILE_SERVICE_URL: "${FILE_SERVICE_URL:-https://file-service.habuild.in}"
+      FILE_SERVICE_TOKEN: "${FILE_SERVICE_TOKEN:-}"
     volumes:
-      # Option A — mount your key read-only. Create ./serviceAccountKey.json first.
       - ./serviceAccountKey.json:/secrets/serviceAccountKey.json:ro

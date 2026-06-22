@@ -59,9 +59,12 @@ interface CatalogData {
   ingredients: Ingredient[];
   searchPlaceholders: string[];
   todaysRecipeId: string;
+  bannerImageUrl: string;
+  bannerTitle: string;
+  bannerSubtitle: string;
   loading: boolean;
   error: string | null;
-  reload: () => void;
+  reload: () => Promise<void>;
   getRemedy: (id: string) => Remedy | undefined;
   remediesByCategory: (catIdOrLabel: string) => Remedy[];
   remediesByIngredient: (ingredientId: string) => Remedy[];
@@ -75,9 +78,12 @@ const CatalogContext = createContext<CatalogData>({
   ingredients: [],
   searchPlaceholders: DEFAULT_PLACEHOLDERS,
   todaysRecipeId: "",
+  bannerImageUrl: "",
+  bannerTitle: "",
+  bannerSubtitle: "",
   loading: true,
   error: null,
-  reload: () => {},
+  reload: async () => {},
   getRemedy: () => undefined,
   remediesByCategory: () => [],
   remediesByIngredient: () => [],
@@ -145,6 +151,9 @@ export const CatalogProvider: React.FC<{ children: React.ReactNode }> = ({
   const [searchPlaceholders, setSearchPlaceholders] =
     useState<string[]>(DEFAULT_PLACEHOLDERS);
   const [todaysRecipeId, setTodaysRecipeId] = useState("");
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [bannerTitle, setBannerTitle] = useState("");
+  const [bannerSubtitle, setBannerSubtitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -180,6 +189,9 @@ export const CatalogProvider: React.FC<{ children: React.ReactNode }> = ({
           : DEFAULT_PLACEHOLDERS,
       );
       setTodaysRecipeId(config.todaysRecipeId ?? "");
+      setBannerImageUrl(config.bannerImageUrl ?? "");
+      setBannerTitle(config.bannerTitle ?? "");
+      setBannerSubtitle(config.bannerSubtitle ?? "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load catalog");
     } finally {
@@ -199,6 +211,9 @@ export const CatalogProvider: React.FC<{ children: React.ReactNode }> = ({
       ingredients,
       searchPlaceholders,
       todaysRecipeId,
+      bannerImageUrl,
+      bannerTitle,
+      bannerSubtitle,
       loading,
       error,
       reload: load,
@@ -220,6 +235,9 @@ export const CatalogProvider: React.FC<{ children: React.ReactNode }> = ({
     ingredients,
     searchPlaceholders,
     todaysRecipeId,
+    bannerImageUrl,
+    bannerTitle,
+    bannerSubtitle,
     loading,
     error,
     load,

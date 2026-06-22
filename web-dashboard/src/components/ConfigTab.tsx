@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { AppConfig, Remedy } from "../types";
-import { Button, Field, LinesInput } from "./ui";
+import { Button, Field, ImageUploadField, LinesInput, TextInput } from "./ui";
 
 export default function ConfigTab() {
   const [config, setConfig] = useState<AppConfig | null>(null);
@@ -14,7 +14,14 @@ export default function ConfigTab() {
   useEffect(() => {
     Promise.all([api.getConfig(), api.listRemedies()])
       .then(([c, r]) => {
-        setConfig(c);
+        // Default any newer fields the backend may not yet send so the
+        // controlled inputs never go undefined.
+        setConfig({
+          ...c,
+          bannerImageUrl: c.bannerImageUrl ?? "",
+          bannerTitle: c.bannerTitle ?? "",
+          bannerSubtitle: c.bannerSubtitle ?? "",
+        });
         setRemedies(r);
       })
       .catch((e) => setError(e.message))
@@ -73,6 +80,36 @@ export default function ConfigTab() {
           value={config.searchPlaceholders}
           onChange={(v) => setConfig({ ...config, searchPlaceholders: v })}
           placeholder={"Search Cold…\nSearch Hair Fall…"}
+        />
+      </Field>
+
+      <Field
+        label="Banner image"
+        hint="Background image for the home-screen banner"
+      >
+        <ImageUploadField
+          value={config.bannerImageUrl}
+          onChange={(v) => setConfig({ ...config, bannerImageUrl: v })}
+          folder="banners"
+        />
+      </Field>
+
+      <Field
+        label="Banner heading"
+        hint={'Big text on the banner — use "\\n" for a line break'}
+      >
+        <TextInput
+          value={config.bannerTitle}
+          onChange={(v) => setConfig({ ...config, bannerTitle: v })}
+          placeholder={"Natural remedies\\nfor everyday health"}
+        />
+      </Field>
+
+      <Field label="Banner subtitle" hint="Smaller text under the heading">
+        <TextInput
+          value={config.bannerSubtitle}
+          onChange={(v) => setConfig({ ...config, bannerSubtitle: v })}
+          placeholder="Trusted home remedies"
         />
       </Field>
 

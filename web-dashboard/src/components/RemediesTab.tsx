@@ -7,7 +7,15 @@ import {
   type Remedy,
   type RemedyIngredient,
 } from "../types";
-import { Button, Checkbox, Field, LinesInput, Modal, TextInput } from "./ui";
+import {
+  Button,
+  Checkbox,
+  Field,
+  GrowableList,
+  ImageUploadField,
+  Modal,
+  TextInput,
+} from "./ui";
 
 export default function RemediesTab() {
   const [items, setItems] = useState<Remedy[]>([]);
@@ -189,11 +197,11 @@ function RemedyForm({
         />
       </Field>
       <div className="row-2">
-        <Field label="Image URL">
-          <TextInput
+        <Field label="Image">
+          <ImageUploadField
             value={form.imageUrl}
             onChange={(v) => set("imageUrl", v)}
-            placeholder="https://…"
+            folder="remedies"
           />
         </Field>
         <Field label="Prep time">
@@ -271,19 +279,25 @@ function RemedyForm({
         </Button>
       </Field>
 
-      <Field label="Steps" hint="One step per line">
-        <LinesInput value={form.steps} onChange={(v) => set("steps", v)} />
-      </Field>
-      <Field label="Benefits" hint="One benefit per line">
-        <LinesInput
-          value={form.benefits}
-          onChange={(v) => set("benefits", v)}
+      <Field label="Steps" hint="One step per row">
+        <GrowableList
+          value={form.steps}
+          onChange={(v) => set("steps", v)}
+          placeholder="e.g. Boil water…"
         />
       </Field>
-      <Field label="Precautions" hint="One precaution per line">
-        <LinesInput
+      <Field label="Benefits" hint="One benefit per row">
+        <GrowableList
+          value={form.benefits}
+          onChange={(v) => set("benefits", v)}
+          placeholder="e.g. Soothes throat"
+        />
+      </Field>
+      <Field label="Precautions" hint="One precaution per row">
+        <GrowableList
           value={form.precautions}
           onChange={(v) => set("precautions", v)}
+          placeholder="e.g. Avoid if pregnant"
         />
       </Field>
 

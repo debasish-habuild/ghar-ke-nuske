@@ -35,6 +35,7 @@
       "./plugins/withFirebaseMessagingManifestFix"
     ],
     "extra": {
+      "apiUrl": "https://gkn-api.vps.sarvinshrivastava.space",
       "eas": {
         "projectId": "8379f92b-8ede-497d-b21c-2678647b2f8d"
       }

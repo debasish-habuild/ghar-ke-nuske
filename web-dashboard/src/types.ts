@@ -42,6 +42,9 @@ export interface Ingredient {
 export interface AppConfig {
   searchPlaceholders: string[];
   todaysRecipeId: string;
+  bannerImageUrl: string;
+  bannerTitle: string;
+  bannerSubtitle: string;
 }
 
 export const EMPTY_REMEDY: Remedy = {

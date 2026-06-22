@@ -297,6 +297,28 @@ h3 {
   flex: 1;
 }
 
+/* image upload field */
+.image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.image-upload-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+}
+.btn.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.field-error {
+  color: #c0392b;
+  font-size: 13px;
+}
+
 /* ── Modal ───────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;
