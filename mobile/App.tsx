@@ -96,11 +96,23 @@ export default function App() {
               >
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Search" component={SearchScreen} />
-                <Stack.Screen name="Remedies" component={RemediesScreen} />
-                <Stack.Screen name="Detail" component={DetailScreen} />
+                {/* Concern → Remedies and (card) → Detail use an "expanding card"
+                    open: a native crossfade here + an in-screen scale-up (see
+                    ExpandIn) instead of the dated slide-from-side. */}
+                <Stack.Screen
+                  name="Remedies"
+                  component={RemediesScreen}
+                  options={{ animation: "fade" }}
+                />
+                <Stack.Screen
+                  name="Detail"
+                  component={DetailScreen}
+                  options={{ animation: "fade" }}
+                />
                 <Stack.Screen
                   name="Ingredients"
                   component={IngredientsScreen}
+                  options={{ animation: "fade" }}
                 />
                 <Stack.Screen name="Saved" component={SavedScreen} />
                 <Stack.Screen name="Profile" component={ProfileScreen} />

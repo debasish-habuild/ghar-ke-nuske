@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -15,6 +14,8 @@ import { RootStackParamList } from "../App";
 import { Fonts, Spacing, Palette } from "../constants/theme";
 import { useCatalog } from "../context/CatalogContext";
 import { useTheme } from "../context/ThemeContext";
+import { RemedyRowsSkeleton } from "../components/Skeleton";
+import ExpandIn from "../components/ExpandIn";
 
 type Route = RouteProp<RootStackParamList, "Remedies">;
 
@@ -36,44 +37,46 @@ export default function RemediesScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          <Feather name="chevron-left" size={20} color={colors.text} />
-        </TouchableOpacity>
-        <View>
-          <Text style={s.headTitle}>{category}</Text>
-          <Text style={s.headSub}>{display.length} remedies found</Text>
+      <ExpandIn>
+        <View style={s.header}>
+          <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
+            <Feather name="chevron-left" size={20} color={colors.text} />
+          </TouchableOpacity>
+          <View>
+            <Text style={s.headTitle}>{category}</Text>
+            <Text style={s.headSub}>{display.length} remedies found</Text>
+          </View>
         </View>
-      </View>
-      {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
-      ) : (
-        <FlatList
-          data={display}
-          keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: Spacing.lg, gap: 12 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={s.card}
-              onPress={() => nav.navigate("Detail", { id: item.id })}
-              activeOpacity={0.85}
-            >
-              <Image source={{ uri: item.img }} style={s.cardImg} />
-              <View style={s.cardBody}>
-                <Text style={s.cardTitle}>{item.title}</Text>
-                <Text style={s.cardSub} numberOfLines={1}>
-                  {item.benefit}
-                </Text>
-                <View style={s.meta}>
-                  <Text style={s.metaT}>⏱ {item.time}</Text>
-                  <Text style={s.metaT}>🌿 {item.ing_n} ing.</Text>
+        {loading ? (
+          <RemedyRowsSkeleton />
+        ) : (
+          <FlatList
+            data={display}
+            keyExtractor={(i) => i.id}
+            contentContainerStyle={{ padding: Spacing.lg, gap: 12 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={s.card}
+                onPress={() => nav.navigate("Detail", { id: item.id })}
+                activeOpacity={0.85}
+              >
+                <Image source={{ uri: item.img }} style={s.cardImg} />
+                <View style={s.cardBody}>
+                  <Text style={s.cardTitle}>{item.title}</Text>
+                  <Text style={s.cardSub} numberOfLines={1}>
+                    {item.benefit}
+                  </Text>
+                  <View style={s.meta}>
+                    <Text style={s.metaT}>⏱ {item.time}</Text>
+                    <Text style={s.metaT}>🌿 {item.ing_n} ing.</Text>
+                  </View>
                 </View>
-              </View>
-              <Feather name="chevron-right" size={16} color={colors.text3} />
-            </TouchableOpacity>
-          )}
-        />
-      )}
+                <Feather name="chevron-right" size={16} color={colors.text3} />
+              </TouchableOpacity>
+            )}
+          />
+        )}
+      </ExpandIn>
     </SafeAreaView>
   );
 }

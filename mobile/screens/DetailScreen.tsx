@@ -20,6 +20,7 @@ import { useSaved } from "../context/SavedContext";
 import { useProfile } from "../context/ProfileContext";
 import { useTheme } from "../context/ThemeContext";
 import ShareCard from "../components/ShareCard";
+import ExpandIn from "../components/ExpandIn";
 
 // Public landing that deep-links into the app (or sends people to the store).
 // Overridable via app.json `extra.shareBaseUrl`.
@@ -82,105 +83,107 @@ export default function DetailScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={["top", "bottom"]}>
-      {/* Parked off-screen: rendered so view-shot can rasterise it on share,
+      <ExpandIn>
+        {/* Parked off-screen: rendered so view-shot can rasterise it on share,
           but never visible to the user. */}
-      <View style={s.offscreen} pointerEvents="none">
-        <ShareCard ref={shareRef} remedy={remedy} seed={shareSeed} />
-      </View>
-      {/* Whole screen scrolls as one (like HomeScreen) — the hero scrolls away
+        <View style={s.offscreen} pointerEvents="none">
+          <ShareCard ref={shareRef} remedy={remedy} seed={shareSeed} />
+        </View>
+        {/* Whole screen scrolls as one (like HomeScreen) — the hero scrolls away
           with the content. The black scroll background shows through the body
           sheet's rounded-corner cutouts. */}
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
-        {/* Hero Image — sits below the status bar (top safe-area inset) so the
+        <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+          {/* Hero Image — sits below the status bar (top safe-area inset) so the
           back/save buttons no longer collide with the notification bar. */}
-        <View style={s.hero}>
-          <Image
-            source={{ uri: remedy.img }}
-            style={StyleSheet.absoluteFillObject}
-            resizeMode="cover"
-          />
-          <View style={s.heroOverlay} />
-          <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-            {/* Fixed dark glyph: this button floats on the photo in both themes. */}
-            <Feather name="chevron-left" size={18} color="#292929" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={s.saveBtn}
-            onPress={() => toggleSave(remedy.id)}
-          >
-            <Ionicons
-              name={saved ? "heart" : "heart-outline"}
-              size={18}
-              color={colors.red}
+          <View style={s.hero}>
+            <Image
+              source={{ uri: remedy.img }}
+              style={StyleSheet.absoluteFillObject}
+              resizeMode="cover"
             />
-          </TouchableOpacity>
-        </View>
-
-        {/* Body sheet — a plain View now; the outer ScrollView does the scrolling */}
-        <View style={s.body}>
-          <Text style={s.title}>{remedy.title}</Text>
-          <View style={s.badges}>
-            <View style={s.badgeG}>
-              <Text style={s.badgeGText}>⏱ {remedy.time}</Text>
-            </View>
-            <View style={s.badgeG}>
-              <Text style={s.badgeGText}>🌿 {remedy.ing_n} ingredients</Text>
-            </View>
-            <View style={s.badgeO}>
-              <Text style={s.badgeOText}>📁 {remedy.cat}</Text>
-            </View>
+            <View style={s.heroOverlay} />
+            <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
+              {/* Fixed dark glyph: this button floats on the photo in both themes. */}
+              <Feather name="chevron-left" size={18} color="#292929" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.saveBtn}
+              onPress={() => toggleSave(remedy.id)}
+            >
+              <Ionicons
+                name={saved ? "heart" : "heart-outline"}
+                size={18}
+                color={colors.red}
+              />
+            </TouchableOpacity>
           </View>
 
-          <Section title="Ingredients">
-            {remedy.ingredients.map((ing, i) => (
-              <View key={i} style={s.ingRow}>
-                <View style={s.ingDot} />
-                <Text style={s.ingName}>{ing.n}</Text>
-                <Text style={s.ingAmt}>{ing.a}</Text>
+          {/* Body sheet — a plain View now; the outer ScrollView does the scrolling */}
+          <View style={s.body}>
+            <Text style={s.title}>{remedy.title}</Text>
+            <View style={s.badges}>
+              <View style={s.badgeG}>
+                <Text style={s.badgeGText}>⏱ {remedy.time}</Text>
               </View>
-            ))}
-          </Section>
+              <View style={s.badgeG}>
+                <Text style={s.badgeGText}>🌿 {remedy.ing_n} ingredients</Text>
+              </View>
+              <View style={s.badgeO}>
+                <Text style={s.badgeOText}>📁 {remedy.cat}</Text>
+              </View>
+            </View>
 
-          <Section title="Steps">
-            {remedy.steps.map((step, i) => (
-              <View key={i} style={s.stepRow}>
-                <View style={s.stepNum}>
-                  <Text style={s.stepNumText}>{i + 1}</Text>
+            <Section title="Ingredients">
+              {remedy.ingredients.map((ing, i) => (
+                <View key={i} style={s.ingRow}>
+                  <View style={s.ingDot} />
+                  <Text style={s.ingName}>{ing.n}</Text>
+                  <Text style={s.ingAmt}>{ing.a}</Text>
                 </View>
-                <Text style={s.stepText}>{step}</Text>
-              </View>
-            ))}
-          </Section>
+              ))}
+            </Section>
 
-          <Section title="Benefits">
-            {remedy.benefits.map((b, i) => (
-              <View key={i} style={s.benRow}>
-                <Text style={s.benCheck}>✓</Text>
-                <Text style={s.benText}>{b}</Text>
-              </View>
-            ))}
-          </Section>
+            <Section title="Steps">
+              {remedy.steps.map((step, i) => (
+                <View key={i} style={s.stepRow}>
+                  <View style={s.stepNum}>
+                    <Text style={s.stepNumText}>{i + 1}</Text>
+                  </View>
+                  <Text style={s.stepText}>{step}</Text>
+                </View>
+              ))}
+            </Section>
 
-          <Section title="Precautions">
-            {remedy.precautions.map((p, i) => (
-              <View key={i} style={s.precRow}>
-                <Text style={s.precIcon}>⚠️</Text>
-                <Text style={s.precText}>{p}</Text>
-              </View>
-            ))}
-          </Section>
-          <View style={{ height: 24 }} />
-        </View>
-      </ScrollView>
+            <Section title="Benefits">
+              {remedy.benefits.map((b, i) => (
+                <View key={i} style={s.benRow}>
+                  <Text style={s.benCheck}>✓</Text>
+                  <Text style={s.benText}>{b}</Text>
+                </View>
+              ))}
+            </Section>
 
-      {/* Actions — saving lives on the heart button in the hero, so the only
+            <Section title="Precautions">
+              {remedy.precautions.map((p, i) => (
+                <View key={i} style={s.precRow}>
+                  <Text style={s.precIcon}>⚠️</Text>
+                  <Text style={s.precText}>{p}</Text>
+                </View>
+              ))}
+            </Section>
+            <View style={{ height: 24 }} />
+          </View>
+        </ScrollView>
+
+        {/* Actions — saving lives on the heart button in the hero, so the only
           action down here is Share. */}
-      <View style={s.actions}>
-        <TouchableOpacity style={s.actShare} onPress={handleShare}>
-          <Feather name="share-2" size={16} color={colors.white} />
-          <Text style={s.actShareText}>Share</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={s.actions}>
+          <TouchableOpacity style={s.actShare} onPress={handleShare}>
+            <Feather name="share-2" size={16} color={colors.white} />
+            <Text style={s.actShareText}>Share</Text>
+          </TouchableOpacity>
+        </View>
+      </ExpandIn>
     </SafeAreaView>
   );
 }

@@ -22,6 +22,7 @@ export interface Ingredient {
   id: string;
   name: string;
   emoji: string;
+  imageUrl: string;
   group: string;
   order: number;
 }
@@ -110,6 +111,7 @@ function adaptIngredient(i: ApiIngredient): Ingredient {
     id: i.id,
     name: i.name,
     emoji: i.emoji,
+    imageUrl: i.imageUrl ?? "",
     // Ungrouped ingredients (e.g. "Water" has a blank group in the data) would
     // otherwise render as a label-less, gap-like section in the Kitchen Finder.
     // Bucket them into "Dairy & Others" so the picker stays tidy.

@@ -26,7 +26,7 @@ deals in plain Go structs whose tags mirror the **real** stored schema.
   `steps[]`, `benefits[]`, `precautions[]`, `isPopular`, `createdAt`,
   `updatedAt`.
 - **`categories`** — `name`, `emoji`, `order`, `roles[]`.
-- **`ingredients`** — `name`, `emoji`, `group`, `order`.
+- **`ingredients`** — `name`, `emoji`, optional `imageUrl`, `group`, `order`.
 - **`config/app`** — `searchPlaceholders[]`, `todaysRecipeId`.
 
 ## Endpoints

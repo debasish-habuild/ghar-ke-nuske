@@ -36,6 +36,7 @@ export interface Ingredient {
   id: string;
   name: string;
   emoji: string;
+  imageUrl: string;
   group: string;
   order: number;
 }
@@ -79,6 +80,7 @@ export const EMPTY_INGREDIENT: Ingredient = {
   id: "",
   name: "",
   emoji: "",
+  imageUrl: "",
   group: "",
   order: 0,
 };

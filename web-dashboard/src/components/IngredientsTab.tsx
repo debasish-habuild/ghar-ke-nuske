@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
 import { EMPTY_INGREDIENT, type Ingredient } from "../types";
-import { Button, Field, Modal, NumberInput, TextInput } from "./ui";
+import {
+  Button,
+  Field,
+  ImageUploadField,
+  Modal,
+  NumberInput,
+  TextInput,
+} from "./ui";
 
 export default function IngredientsTab() {
   const [items, setItems] = useState<Ingredient[]>([]);
@@ -56,7 +63,11 @@ export default function IngredientsTab() {
         <div className="list">
           {items.map((i) => (
             <div className="row-card" key={i.id}>
-              <div className="row-emoji">{i.emoji || "🌿"}</div>
+              {i.imageUrl ? (
+                <img className="row-thumb" src={i.imageUrl} alt={i.name} />
+              ) : (
+                <div className="row-emoji">{i.emoji || "🌿"}</div>
+              )}
               <div className="row-main">
                 <div className="row-title">{i.name}</div>
                 <div className="row-sub">{i.group}</div>
@@ -139,6 +150,16 @@ function IngredientForm({
           <NumberInput value={form.order} onChange={(v) => set("order", v)} />
         </Field>
       </div>
+      <Field
+        label="3D icon"
+        hint="Optional Magnific/exported icon URL, or upload an image"
+      >
+        <ImageUploadField
+          value={form.imageUrl}
+          onChange={(v) => set("imageUrl", v)}
+          folder="ingredients"
+        />
+      </Field>
       <Field label="Group" hint="Bucket shown in the app's Kitchen Finder">
         <TextInput
           value={form.group}

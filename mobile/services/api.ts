@@ -59,6 +59,7 @@ export interface ApiIngredient {
   id: string;
   name: string;
   emoji: string;
+  imageUrl?: string;
   group: string;
   order: number;
 }

@@ -1,8 +1,6 @@
 import React, {
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import {
@@ -12,7 +10,6 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,8 +20,10 @@ import { Fonts, Spacing, Radius, Palette } from "../constants/theme";
 import { CATEGORY_ICONS } from "../constants/categoryIcons";
 import { useCatalog } from "../context/CatalogContext";
 import { useTheme } from "../context/ThemeContext";
+import { CardRowSkeleton, RecipeCardSkeleton } from "../components/Skeleton";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTypewriterPlaceholder } from "../hooks/useTypewriterPlaceholder";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -54,38 +53,10 @@ export default function HomeScreen() {
   }, [reload]);
   const { colors } = useTheme();
   const s = useMemo(() => makeStyles(colors), [colors]);
-  const [placeholder, setPlaceholder] = useState("");
-  const phIdx = useRef(0);
-  const phChar = useRef(0);
-  const deleting = useRef(false);
-
-  // Animated placeholder typewriter (backend-provided phrases)
-  useEffect(() => {
-    if (!searchPlaceholders.length) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      const word =
-        searchPlaceholders[phIdx.current % searchPlaceholders.length];
-      if (!deleting.current) {
-        phChar.current++;
-        setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === word.length) {
-          deleting.current = true;
-          timer = setTimeout(tick, 1600);
-        } else timer = setTimeout(tick, 80);
-      } else {
-        phChar.current--;
-        setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === 0) {
-          deleting.current = false;
-          phIdx.current = (phIdx.current + 1) % searchPlaceholders.length;
-          timer = setTimeout(tick, 300);
-        } else timer = setTimeout(tick, 40);
-      }
-    };
-    timer = setTimeout(tick, 400);
-    return () => clearTimeout(timer);
-  }, [searchPlaceholders]);
+  const placeholder = useTypewriterPlaceholder(
+    searchPlaceholders,
+    "Search Cold...",
+  );
 
   const popular = remedies.filter((r) => r.isPopular);
   const popularList = popular.length > 0 ? popular : remedies;
@@ -162,9 +133,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <Feather name="search" size={16} color={colors.text3} />
-              <Text style={s.searchPlaceholder}>
-                {placeholder || "Search Cold…"}
-              </Text>
+              <Text style={s.searchPlaceholder}>{placeholder}</Text>
             </TouchableOpacity>
           </View>
 
@@ -182,10 +151,7 @@ export default function HomeScreen() {
             <Text style={s.secSub}>Herbal Remedies to ease out problems</Text>
           </View>
           {loading ? (
-            <ActivityIndicator
-              style={{ marginVertical: 24 }}
-              color={colors.primary}
-            />
+            <CardRowSkeleton />
           ) : (
             <ScrollView
               horizontal
@@ -235,25 +201,29 @@ export default function HomeScreen() {
           )}
 
           {/* ── Today's Recipe ── */}
-          {todays && (
-            <TouchableOpacity
-              style={s.recipeCard}
-              onPress={() => nav.navigate("Detail", { id: todays.id })}
-              activeOpacity={0.9}
-            >
-              <View style={s.recipeBody}>
-                <Text style={s.recipeLabel}>TODAY'S RECIPE</Text>
-                <Text style={s.recipeTitle} numberOfLines={2}>
-                  {todays.title}
-                </Text>
-                <Text style={s.recipeLink}>Know More ›</Text>
-              </View>
-              <Image
-                source={{ uri: todays.img }}
-                style={s.recipeImg}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
+          {loading ? (
+            <RecipeCardSkeleton />
+          ) : (
+            todays && (
+              <TouchableOpacity
+                style={s.recipeCard}
+                onPress={() => nav.navigate("Detail", { id: todays.id })}
+                activeOpacity={0.9}
+              >
+                <View style={s.recipeBody}>
+                  <Text style={s.recipeLabel}>TODAY'S RECIPE</Text>
+                  <Text style={s.recipeTitle} numberOfLines={2}>
+                    {todays.title}
+                  </Text>
+                  <Text style={s.recipeLink}>Know More ›</Text>
+                </View>
+                <Image
+                  source={{ uri: todays.img }}
+                  style={s.recipeImg}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )
           )}
 
           {/* ── Kitchen Finder CTA ── */}
@@ -273,29 +243,33 @@ export default function HomeScreen() {
             <Text style={s.secTitle}>Popular Remedies</Text>
             <Text style={s.secSub}>Trusted by thousands</Text>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[s.hScroll, { paddingBottom: 24 }]}
-          >
-            {popularList.map((r) => (
-              <TouchableOpacity
-                key={r.id}
-                style={s.catCard}
-                onPress={() => nav.navigate("Detail", { id: r.id })}
-                activeOpacity={0.85}
-              >
-                <Image
-                  source={{ uri: r.img }}
-                  style={s.catPhoto}
-                  resizeMode="cover"
-                />
-                <Text style={s.catLabel} numberOfLines={1}>
-                  {r.title}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {loading ? (
+            <CardRowSkeleton />
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={[s.hScroll, { paddingBottom: 24 }]}
+            >
+              {popularList.map((r) => (
+                <TouchableOpacity
+                  key={r.id}
+                  style={s.catCard}
+                  onPress={() => nav.navigate("Detail", { id: r.id })}
+                  activeOpacity={0.85}
+                >
+                  <Image
+                    source={{ uri: r.img }}
+                    style={s.catPhoto}
+                    resizeMode="cover"
+                  />
+                  <Text style={s.catLabel} numberOfLines={1}>
+                    {r.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

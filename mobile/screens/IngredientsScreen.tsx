@@ -2,10 +2,10 @@ import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -14,6 +14,8 @@ import { Fonts, Palette } from "../constants/theme";
 import { Spacing } from "../constants/theme";
 import { useCatalog, Ingredient } from "../context/CatalogContext";
 import { useTheme } from "../context/ThemeContext";
+import { ChipGroupsSkeleton } from "../components/Skeleton";
+import ExpandIn from "../components/ExpandIn";
 
 export default function IngredientsScreen() {
   const nav = useNavigation<any>();
@@ -51,71 +53,81 @@ export default function IngredientsScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
-          <Feather name="chevron-left" size={20} color={colors.text} />
-        </TouchableOpacity>
-        <View>
-          <Text style={s.headTitle}>Kitchen Finder</Text>
-          <Text style={s.headSub}>Find remedies from what you have</Text>
-        </View>
-      </View>
-      {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
-      ) : (
-        <ScrollView
-          contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 100 }}
-        >
-          <View style={s.heroCard}>
-            <Text style={s.heroEmoji}>🧺</Text>
-            <Text style={s.heroTitle}>What's in your kitchen?</Text>
-            <Text style={s.heroSub}>
-              Select ingredients and we'll find the perfect remedy
-            </Text>
-          </View>
-          {groups.map((group) => (
-            <View key={group.label} style={{ marginBottom: 20 }}>
-              <Text style={s.groupLabel}>{group.label}</Text>
-              <View style={s.chips}>
-                {group.items.map((item) => {
-                  const on = selected.has(item.id);
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={[s.chip, on && s.chipOn]}
-                      onPress={() => toggle(item.id)}
-                    >
-                      <Text style={s.chipEmoji}>{item.emoji}</Text>
-                      <Text style={[s.chipText, on && s.chipTextOn]}>
-                        {item.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          ))}
-          {selected.size > 0 && (
-            <View style={s.selBar}>
-              <Text style={s.selText}>
-                {selected.size} ingredient{selected.size !== 1 ? "s" : ""}{" "}
-                selected
-              </Text>
-              <TouchableOpacity onPress={() => setSelected(new Set())}>
-                <Text style={s.clearText}>Clear all</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          <TouchableOpacity
-            style={[s.findBtn, selected.size === 0 && s.findBtnDisabled]}
-            disabled={selected.size === 0}
-            onPress={onFind}
-          >
-            <Text style={s.findBtnText}>Find Remedies</Text>
-            <Feather name="arrow-right" size={16} color="#fff" />
+      <ExpandIn>
+        <View style={s.header}>
+          <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
+            <Feather name="chevron-left" size={20} color={colors.text} />
           </TouchableOpacity>
-        </ScrollView>
-      )}
+          <View>
+            <Text style={s.headTitle}>Kitchen Finder</Text>
+            <Text style={s.headSub}>Find remedies from what you have</Text>
+          </View>
+        </View>
+        {loading ? (
+          <ChipGroupsSkeleton />
+        ) : (
+          <ScrollView
+            contentContainerStyle={{ padding: Spacing.lg, paddingBottom: 100 }}
+          >
+            <View style={s.heroCard}>
+              <Text style={s.heroEmoji}>🧺</Text>
+              <Text style={s.heroTitle}>What's in your kitchen?</Text>
+              <Text style={s.heroSub}>
+                Select ingredients and we'll find the perfect remedy
+              </Text>
+            </View>
+            {groups.map((group) => (
+              <View key={group.label} style={{ marginBottom: 20 }}>
+                <Text style={s.groupLabel}>{group.label}</Text>
+                <View style={s.chips}>
+                  {group.items.map((item) => {
+                    const on = selected.has(item.id);
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[s.chip, on && s.chipOn]}
+                        onPress={() => toggle(item.id)}
+                      >
+                        {item.imageUrl ? (
+                          <Image
+                            source={{ uri: item.imageUrl }}
+                            style={s.chipIcon}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Text style={s.chipEmoji}>{item.emoji}</Text>
+                        )}
+                        <Text style={[s.chipText, on && s.chipTextOn]}>
+                          {item.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
+            {selected.size > 0 && (
+              <View style={s.selBar}>
+                <Text style={s.selText}>
+                  {selected.size} ingredient{selected.size !== 1 ? "s" : ""}{" "}
+                  selected
+                </Text>
+                <TouchableOpacity onPress={() => setSelected(new Set())}>
+                  <Text style={s.clearText}>Clear all</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <TouchableOpacity
+              style={[s.findBtn, selected.size === 0 && s.findBtnDisabled]}
+              disabled={selected.size === 0}
+              onPress={onFind}
+            >
+              <Text style={s.findBtnText}>Find Remedies</Text>
+              <Feather name="arrow-right" size={16} color="#fff" />
+            </TouchableOpacity>
+          </ScrollView>
+        )}
+      </ExpandIn>
     </SafeAreaView>
   );
 }
@@ -186,6 +198,12 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.primaryLight,
     },
     chipEmoji: { fontSize: 17 },
+    chipIcon: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      backgroundColor: c.subtle,
+    },
     chipText: { fontFamily: Fonts.medium, fontSize: 12, color: c.text3 },
     chipTextOn: { color: c.primary, fontFamily: Fonts.semibold },
     selBar: {

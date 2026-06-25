@@ -22,6 +22,7 @@ import {
   Remedy,
 } from "../context/CatalogContext";
 import { useRecentSearches } from "../hooks/useRecentSearches";
+import { useTypewriterPlaceholder } from "../hooks/useTypewriterPlaceholder";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -41,43 +42,15 @@ export default function SearchScreen() {
   const { colors } = useTheme();
   const s = useMemo(() => makeStyles(colors), [colors]);
   const [query, setQuery] = useState("");
-  const [placeholder, setPlaceholder] = useState("");
   const inputRef = useRef<TextInput>(null);
-  const phIdx = useRef(0),
-    phChar = useRef(0),
-    deleting = useRef(false);
+  const placeholder = useTypewriterPlaceholder(
+    searchPlaceholders,
+    "Search remedies...",
+  );
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-
-  // Animated typewriter placeholder, driven by backend-provided phrases.
-  useEffect(() => {
-    if (!searchPlaceholders.length) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      const word =
-        searchPlaceholders[phIdx.current % searchPlaceholders.length];
-      if (!deleting.current) {
-        phChar.current++;
-        setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === word.length) {
-          deleting.current = true;
-          timer = setTimeout(tick, 1600);
-        } else timer = setTimeout(tick, 80);
-      } else {
-        phChar.current--;
-        setPlaceholder(word.substring(0, phChar.current));
-        if (phChar.current === 0) {
-          deleting.current = false;
-          phIdx.current = (phIdx.current + 1) % searchPlaceholders.length;
-          timer = setTimeout(tick, 300);
-        } else timer = setTimeout(tick, 40);
-      }
-    };
-    timer = setTimeout(tick, 400);
-    return () => clearTimeout(timer);
-  }, [searchPlaceholders]);
 
   const q = query.trim().toLowerCase();
 
@@ -249,6 +222,9 @@ export default function SearchScreen() {
             const label = isCondition
               ? (entity as Category).label
               : (entity as Ingredient).name;
+            const ingredientImageUrl = isCondition
+              ? ""
+              : (entity as Ingredient).imageUrl;
             return (
               <TouchableOpacity
                 style={s.row}
@@ -263,7 +239,15 @@ export default function SearchScreen() {
                   );
                 }}
               >
-                <Text style={s.rowEmoji}>{entity.emoji}</Text>
+                {ingredientImageUrl ? (
+                  <Image
+                    source={{ uri: ingredientImageUrl }}
+                    style={s.rowIcon}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Text style={s.rowEmoji}>{entity.emoji}</Text>
+                )}
                 <Text style={s.rowLabel}>{label}</Text>
                 <Feather name="chevron-right" size={16} color={colors.text3} />
               </TouchableOpacity>
@@ -409,6 +393,12 @@ const makeStyles = (c: Palette) =>
       borderColor: c.border,
     },
     rowEmoji: { fontSize: 20 },
+    rowIcon: {
+      width: 24,
+      height: 24,
+      borderRadius: 6,
+      backgroundColor: c.subtle,
+    },
     rowLabel: {
       flex: 1,
       fontFamily: Fonts.semibold,

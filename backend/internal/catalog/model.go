@@ -52,13 +52,15 @@ type Category struct {
 }
 
 // Ingredient is a single ingredient from the `ingredients` collection. `group`
-// buckets ingredients in the picker UI (e.g. "Common Herbs").
+// buckets ingredients in the picker UI (e.g. "Common Herbs"). ImageURL is
+// optional; clients fall back to Emoji when no image is set.
 type Ingredient struct {
-	ID    string `firestore:"-"     json:"id"`
-	Name  string `firestore:"name"  json:"name"`
-	Emoji string `firestore:"emoji" json:"emoji"`
-	Group string `firestore:"group" json:"group"`
-	Order int    `firestore:"order" json:"order"`
+	ID       string `firestore:"-"        json:"id"`
+	Name     string `firestore:"name"     json:"name"`
+	Emoji    string `firestore:"emoji"    json:"emoji"`
+	ImageURL string `firestore:"imageUrl" json:"imageUrl"`
+	Group    string `firestore:"group"    json:"group"`
+	Order    int    `firestore:"order"    json:"order"`
 }
 
 // AppConfig is the `config/app` document driving dynamic UI bits: the rotating
