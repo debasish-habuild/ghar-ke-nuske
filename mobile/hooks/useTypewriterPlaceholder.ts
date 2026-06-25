@@ -90,5 +90,9 @@ export function useTypewriterPlaceholder(
     timings.typeDelay,
   ]);
 
-  return text || fallback;
+  // Fall back ONLY when there are no phrases to animate. During the animation
+  // `text` is intentionally empty between phrases (just after deleting), so we
+  // must not treat that empty string as "show the fallback" — otherwise the
+  // fallback flashes for a split second at the end of every cycle.
+  return cleanPhrases.length ? text : fallback;
 }
